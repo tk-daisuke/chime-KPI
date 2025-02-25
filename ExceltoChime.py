@@ -9,7 +9,9 @@ import japanize_matplotlib
 import os
 from openpyxl import load_workbook
 import xlwings as xw
-
+import pyfiglet
+import random
+import sys
 # 仮想環境の構築手順
 # 仮想環境を作成: python -m venv .venv
 # 仮想環境をアクティベート: .venv\Scripts\activate
@@ -31,6 +33,20 @@ sheet_name3 = 'Sheet1'
 # Webhook URL
 webhook_url = 'https://webhook-test.com/98b2ff73ac2524023b6f209fc5cb7c7e'
 print("システム起動 終了はCtrl+C")
+
+# ローディングアニメーションを表示する関数
+def loading_animation():
+    loading_text = "Loading"
+    for i in range(4):  # 4回繰り返す
+        print(loading_text + '.' * i, end='\r')  # カーソルを行の先頭に戻す
+        time.sleep(0.5)  # 0.5秒待つ
+    print(loading_text + '....')  # 最後に4つのドットを表示
+
+# かっこいい文字を表示
+ascii_art = pyfiglet.figlet_format("SYSTEM START", font="slant")
+print(ascii_art)
+# ローディングアニメーションを表示
+loading_animation()
 
 def send_message(message):
     try:
@@ -72,7 +88,7 @@ def send_simple_message(content):
         "Content": "/md\n" + content
     }
     # ここで実際の送信処理を行う
-    print(message)
+    # print(message)
 
 def send_total_message(sum_all, sum_over_limit):
     content = f"合計は: {sum_all}\n20日以上経過の数値の合計は: {sum_over_limit}"
@@ -95,7 +111,6 @@ def make_graph(df):
         }
         
         df.set_index('経過日数', inplace=True)
-        print(df.head())
         # グラフを作成
         fig, ax = plt.subplots(figsize=(12, 8))
         
@@ -161,7 +176,7 @@ def update_excel(file_path):
     wb.close()
     app.quit()
 
-def process_and_send_data(file_path):
+def process_and_send_data(file_path, min_time=8, max_time=12):
     # Excelファイルを更新
     update_excel(file_path)
     
@@ -174,8 +189,8 @@ def process_and_send_data(file_path):
     # 出勤時間を数値に変換
     df_sorted['出勤時間'] = pd.to_numeric(df_sorted['出勤時間'], errors='coerce')
 
-    # 8から12を含む行をフィルタリング
-    df_filtered = df_sorted[(df_sorted['出勤時間'] >= 8) & (df_sorted['出勤時間'] <= 12)]
+    # 引数で指定された範囲でフィルタリング
+    df_filtered = df_sorted[(df_sorted['出勤時間'] >= min_time) & (df_sorted['出勤時間'] <= max_time)]
     
     # 必要な列を選択
     df_filtered_columns = df_filtered[['出勤時間', 'あ']]
