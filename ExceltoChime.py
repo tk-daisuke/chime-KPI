@@ -25,7 +25,7 @@ excel_file_path = 'book1.xlsx'
 sheet_name = 'Sheet1'
 excel_file_path2 = 'book2.xlsx'
 sheet_name2 = 'Sheet1'
-excel_file_path3 = r'C:\Users\tyow\dev\chime-KPI\Book3.xlsx'
+excel_file_path3 = r'Book3.xlsx'
 sheet_name3 = 'Sheet1'
 
 # Webhook URL
@@ -131,7 +131,7 @@ def make_graph(df):
         plt.legend(loc='upper right')
 
         plt.tight_layout()
-        plt.savefig('forecast.png')
+        plt.savefig('histogram.png')
         plt.close()
     except Exception as e:
         print(f"エラーが発生しました: {e}")
