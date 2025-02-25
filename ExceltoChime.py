@@ -14,6 +14,8 @@ import os
 
 # 仮想環境のアクティベート確認
 # ターミナルに (.venv) と表示されれば成功
+#pip freeze > requirements.txt
+#pip install -r requirements.txt
 
 # Excelファイルのパスとシート名
 excel_file_path = 'book1.xlsx'
