@@ -177,8 +177,9 @@ def process_and_send_data(file_path):
     # 8から12を含む行をフィルタリング
     df_filtered = df_sorted[(df_sorted['出勤時間'] >= 8) & (df_sorted['出勤時間'] <= 12)]
     
-    # DataFrameをMarkdown形式で送信
-    markdown_content = df_filtered.to_markdown(index=False)
+    # 必要な列を選択
+    df_filtered_columns = df_filtered[['出勤時間', 'あ']]
+    markdown_content = df_filtered_columns.to_markdown(index=False)
     send_simple_message(markdown_content)
     print(markdown_content)
 
