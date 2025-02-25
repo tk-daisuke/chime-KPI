@@ -1,18 +1,17 @@
-import pandas as pd
-import requests
-import schedule
+import os
+import signal
 import time
+import random
+import sys
+import requests
+import pandas as pd
+import schedule
 import matplotlib.pyplot as plt
 from datetime import datetime, timedelta
-import base64
-import japanize_matplotlib
-import os
 from openpyxl import load_workbook
 import xlwings as xw
 import pyfiglet
-import random
-import sys
-import signal
+import japanize_matplotlib
 # 仮想環境の構築手順
 # 仮想環境を作成: python -m venv .venv
 # 仮想環境をアクティベート: .venv\Scripts\activate
