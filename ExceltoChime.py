@@ -12,6 +12,7 @@ import xlwings as xw
 import pyfiglet
 import random
 import sys
+import signal
 # 仮想環境の構築手順
 # 仮想環境を作成: python -m venv .venv
 # 仮想環境をアクティベート: .venv\Scripts\activate
@@ -160,43 +161,51 @@ def send_daily_data():
         print(f"エラーが発生しました: {e}")
 
 def update_excel(file_path):
-    # Excelアプリケーションを起動し、ブックを開く
-    app = xw.App(visible=True)  # Excelを非表示で実行
-    wb = app.books.open(file_path)
+    try:
+        # Excelアプリケーションを起動し、ブックを開く
+        app = xw.App(visible=True)  # Excelを非表示で実行
+        wb = app.books.open(file_path)
 
-    # 外部参照を更新
-    wb.api.RefreshAll()
-    app.api.CalculateUntilAsyncQueriesDone()
+        # 外部参照を更新
+        wb.api.RefreshAll()
+        app.api.CalculateUntilAsyncQueriesDone()
 
-    # シートの内容を確認（例として最初のシートのA1:A11を表示）
-    print(wb.sheets[0].range("A1:A11").value)
+        # シートの内容を確認（例として最初のシートのA1:A11を表示）
+        print(wb.sheets[0].range("A1:A11").value)
 
-    # 保存して閉じる
-    wb.save()
-    wb.close()
-    app.quit()
+        # 保存して閉じる
+        wb.save()
+        wb.close()
+        app.quit()
+    except Exception as e:
+        print(f"エラーが発生しました: {e}")
+        # Excelを強制終了
+        os.system("taskkill /f /im EXCEL.EXE")
 
 def process_and_send_data(file_path, min_time=8, max_time=12):
-    # Excelファイルを更新
-    update_excel(file_path)
-    
-    # pandasでデータを取得
-    df = pd.read_excel(file_path)
-    
-    # 出勤時間で並べ替え
-    df_sorted = df.sort_values(by='出勤時間')
-    
-    # 出勤時間を数値に変換
-    df_sorted['出勤時間'] = pd.to_numeric(df_sorted['出勤時間'], errors='coerce')
+    try:
+        # Excelファイルを更新
+        update_excel(file_path)
+        
+        # pandasでデータを取得
+        df = pd.read_excel(file_path)
+        
+        # 出勤時間で並べ替え
+        df_sorted = df.sort_values(by='出勤時間')
+        
+        # 出勤時間を数値に変換
+        df_sorted['出勤時間'] = pd.to_numeric(df_sorted['出勤時間'], errors='coerce')
 
-    # 引数で指定された範囲でフィルタリング
-    df_filtered = df_sorted[(df_sorted['出勤時間'] >= min_time) & (df_sorted['出勤時間'] <= max_time)]
-    
-    # 必要な列を選択
-    df_filtered_columns = df_filtered[['出勤時間', 'あ']]
-    markdown_content = df_filtered_columns.to_markdown(index=False)
-    send_simple_message(markdown_content)
-    print(markdown_content)
+        # 引数で指定された範囲でフィルタリング
+        df_filtered = df_sorted[(df_sorted['出勤時間'] >= min_time) & (df_sorted['出勤時間'] <= max_time)]
+        
+        # 必要な列を選択
+        df_filtered_columns = df_filtered[['出勤時間', 'あ']]
+        markdown_content = df_filtered_columns.to_markdown(index=False)
+        send_simple_message(markdown_content)
+        print(markdown_content)
+    except Exception as e:
+        print(f"エラーが発生しました: {e}")
 
 # 実行
 process_and_send_data(excel_file_path3)
