@@ -7,6 +7,9 @@ from datetime import datetime, timedelta
 import base64
 import japanize_matplotlib
 import os
+from openpyxl import load_workbook
+import win32com.client as win32
+import xlwings as xw
 
 # 仮想環境の構築手順
 # 仮想環境を作成: python -m venv .venv
@@ -16,12 +19,15 @@ import os
 # ターミナルに (.venv) と表示されれば成功
 #pip freeze > requirements.txt
 #pip install -r requirements.txt
+#python -m pip install setuptools
 
 # Excelファイルのパスとシート名
 excel_file_path = 'book1.xlsx'
 sheet_name = 'Sheet1'
 excel_file_path2 = 'book2.xlsx'
 sheet_name2 = 'Sheet1'
+excel_file_path3 = r'C:\Users\tyow\dev\chime-KPI\Book3.xlsx'
+sheet_name3 = 'Sheet1'
 
 # Webhook URL
 webhook_url = 'https://webhook-test.com/98b2ff73ac2524023b6f209fc5cb7c7e'
@@ -56,15 +62,18 @@ def get_excel_data():
         return 0, 0
 
 def send_simple_message(content):
-    """
-    シンプルなメッセージを送信する関数
-    Args:
-        content (str): 送信するメッセージ内容
-    """
+    max_size = 3900  # 3.9KB
+    # サイズをチェックして調整
+    while len(content.encode('utf-8')) > max_size:
+        # 行数を減らして調整
+        lines = content.split('\n')
+        content = '\n'.join(lines[:-1])
+    
     message = {
-        "Content": content
+        "Content": "/md\n" + content
     }
-    send_message(message)
+    # ここで実際の送信処理を行う
+    print(message)
 
 def send_total_message(sum_all, sum_over_limit):
     content = f"合計は: {sum_all}\n20日以上経過の数値の合計は: {sum_over_limit}"
@@ -135,6 +144,47 @@ def send_daily_data():
         send_graph_message()
     except Exception as e:
         print(f"エラーが発生しました: {e}")
+
+def update_excel(file_path):
+    # Excelアプリケーションを起動し、ブックを開く
+    app = xw.App(visible=True)  # Excelを非表示で実行
+    wb = app.books.open(file_path)
+
+    # 外部参照を更新
+    wb.api.RefreshAll()
+    app.api.CalculateUntilAsyncQueriesDone()
+
+    # シートの内容を確認（例として最初のシートのA1:A11を表示）
+    print(wb.sheets[0].range("A1:A11").value)
+
+    # 保存して閉じる
+    wb.save()
+    wb.close()
+    app.quit()
+
+def process_and_send_data(file_path):
+    # Excelファイルを更新
+    update_excel(file_path)
+    
+    # pandasでデータを取得
+    df = pd.read_excel(file_path)
+    
+    # 出勤時間で並べ替え
+    df_sorted = df.sort_values(by='出勤時間')
+    
+    # 出勤時間を数値に変換
+    df_sorted['出勤時間'] = pd.to_numeric(df_sorted['出勤時間'], errors='coerce')
+
+    # 8から12を含む行をフィルタリング
+    df_filtered = df_sorted[(df_sorted['出勤時間'] >= 8) & (df_sorted['出勤時間'] <= 12)]
+    
+    # DataFrameをMarkdown形式で送信
+    markdown_content = df_filtered.to_markdown(index=False)
+    send_simple_message(markdown_content)
+    print(markdown_content)
+
+# 実行
+process_and_send_data(excel_file_path3)
 
 send_daily_data()
 send_simple_message("今日は備品補充の日です。必要な備品を確認してください。")
