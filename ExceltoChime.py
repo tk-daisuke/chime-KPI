@@ -8,7 +8,6 @@ import base64
 import japanize_matplotlib
 import os
 from openpyxl import load_workbook
-import win32com.client as win32
 import xlwings as xw
 
 # 仮想環境の構築手順
