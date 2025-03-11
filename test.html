@@ -732,6 +732,301 @@
             document.getElementById(`object-${this.selectedObject.id}`).classList.remove('selected');
           }
           
+                  
           // 新たに選択
           this.selectedObject = this.objects.find(obj => obj.id === id);
-          objectE
+          objectElement.classList.add('selected');
+          
+          // キャンバス内でスクロール位置を調整
+          const canvasContainer = document.querySelector('.canvas-container');
+          canvasContainer.scrollLeft = objectElement.offsetLeft - canvasContainer.offsetWidth / 2;
+          canvasContainer.scrollTop = objectElement.offsetTop - canvasContainer.offsetHeight / 2;
+        }
+      }
+      
+      // オブジェクト削除
+      deleteObject(id) {
+        const index = this.objects.findIndex(obj => obj.id === id);
+        if (index !== -1) {
+          // オブジェクトの削除
+          this.objects.splice(index, 1);
+          const objectElement = document.getElementById(`object-${id}`);
+          if (objectElement) {
+            objectElement.remove();
+          }
+          
+          // 選択状態の更新
+          if (this.selectedObject && this.selectedObject.id === id) {
+            this.selectedObject = null;
+          }
+          
+          this.updateObjectList();
+          this.showToast('オブジェクトを削除しました');
+        }
+      }
+      
+      // フォームのリセット
+      resetForm() {
+        this.objectNameInput.value = '';
+        this.isFixedInput.checked = false;
+      }
+      
+      // キャンバス上のマウスダウンイベント
+      handleCanvasMouseDown(e) {
+        if (e.target.closest('.layout-object')) {
+          const objectElement = e.target.closest('.layout-object');
+          const id = objectElement.id.replace('object-', '');
+          const object = this.objects.find(obj => obj.id === id);
+          
+          if (object && !object.isFixed) {
+            this.isDragging = true;
+            this.dragOffsetX = e.clientX - objectElement.offsetLeft;
+            this.dragOffsetY = e.clientY - objectElement.offsetTop;
+            
+            // 既存の選択を解除
+            if (this.selectedObject) {
+              document.getElementById(`object-${this.selectedObject.id}`).classList.remove('selected');
+            }
+            
+            // 新たに選択
+            this.selectedObject = object;
+            objectElement.classList.add('selected');
+          }
+        } else {
+          // キャンバス上の空白部分をクリックした場合は選択解除
+          if (this.selectedObject) {
+            document.getElementById(`object-${this.selectedObject.id}`).classList.remove('selected');
+            this.selectedObject = null;
+          }
+        }
+      }
+      
+      // ドキュメント全体のマウス移動イベント
+      handleDocumentMouseMove(e) {
+        if (this.isDragging && this.selectedObject && !this.selectedObject.isFixed) {
+          const newX = e.clientX - this.dragOffsetX;
+          const newY = e.clientY - this.dragOffsetY;
+          
+          // オブジェクトの位置を更新
+          const objectElement = document.getElementById(`object-${this.selectedObject.id}`);
+          objectElement.style.left = `${newX}px`;
+          objectElement.style.top = `${newY}px`;
+          
+          // データも更新
+          this.selectedObject.x = newX;
+          this.selectedObject.y = newY;
+        }
+      }
+      
+      // ドキュメント全体のマウスアップイベント
+      handleDocumentMouseUp() {
+        if (this.isDragging) {
+          this.isDragging = false;
+        }
+      }
+      
+      // ズームイン
+      zoomIn() {
+        if (this.currentScale < 2) {
+          this.currentScale += 0.1;
+          this.applyZoom();
+        }
+      }
+      
+      // ズームアウト
+      zoomOut() {
+        if (this.currentScale > 0.5) {
+          this.currentScale -= 0.1;
+          this.applyZoom();
+        }
+      }
+      
+      // ズームリセット
+      zoomReset() {
+        this.currentScale = 1;
+        this.applyZoom();
+      }
+      
+      // ズーム適用
+      applyZoom() {
+        this.canvas.style.transform = `scale(${this.currentScale})`;
+        this.canvas.style.transformOrigin = '0 0';
+      }
+      
+      // 保存モーダル表示
+      showSaveModal() {
+        document.getElementById('layoutName').value = '';
+        this.saveModal.style.display = 'flex';
+      }
+      
+      // 保存モーダル非表示
+      hideSaveModal() {
+        this.saveModal.style.display = 'none';
+      }
+      
+      // レイアウト保存
+      saveLayout() {
+        const name = document.getElementById('layoutName').value.trim();
+        if (!name) {
+          this.showToast('レイアウト名を入力してください', 'error');
+          return;
+        }
+        
+        const layoutData = {
+          name,
+          date: new Date().toLocaleString(),
+          objects: [...this.objects],
+          scale: this.currentScale
+        };
+        
+        // ローカルストレージから既存のレイアウトを取得
+        let savedLayouts = JSON.parse(localStorage.getItem('layoutAppLayouts') || '[]');
+        
+        // 同名のレイアウトがあれば上書き
+        const existingIndex = savedLayouts.findIndex(layout => layout.name === name);
+        if (existingIndex !== -1) {
+          savedLayouts[existingIndex] = layoutData;
+        } else {
+          savedLayouts.push(layoutData);
+        }
+        
+        // ローカルストレージに保存
+        localStorage.setItem('layoutAppLayouts', JSON.stringify(savedLayouts));
+        
+        this.hideSaveModal();
+        this.showToast(`レイアウト「${name}」を保存しました`, 'success');
+      }
+      
+      // 読込モーダル表示
+      showLoadModal() {
+        const savedLayouts = JSON.parse(localStorage.getItem('layoutAppLayouts') || '[]');
+        const layoutsContainer = document.getElementById('savedLayouts');
+        layoutsContainer.innerHTML = '';
+        
+        if (savedLayouts.length === 0) {
+          layoutsContainer.innerHTML = '<p>保存されたレイアウトはありません</p>';
+        } else {
+          savedLayouts.forEach(layout => {
+            const layoutItem = document.createElement('div');
+            layoutItem.className = 'object-item';
+            
+            const info = document.createElement('div');
+            info.className = 'object-info';
+            
+            const name = document.createElement('div');
+            name.className = 'object-name';
+            name.textContent = layout.name;
+            
+            const meta = document.createElement('div');
+            meta.className = 'object-meta';
+            meta.textContent = `保存日時: ${layout.date} · オブジェクト数: ${layout.objects.length}`;
+            
+            info.appendChild(name);
+            info.appendChild(meta);
+            
+            const actions = document.createElement('div');
+            actions.className = 'object-actions';
+            
+            const loadBtn = document.createElement('button');
+            loadBtn.textContent = '読込';
+            loadBtn.addEventListener('click', () => this.loadLayout(layout));
+            
+            const deleteBtn = document.createElement('button');
+            deleteBtn.innerHTML = '<i class="fas fa-trash"></i>';
+            deleteBtn.addEventListener('click', () => this.deleteSavedLayout(layout.name));
+            
+            actions.appendChild(loadBtn);
+            actions.appendChild(deleteBtn);
+            
+            layoutItem.appendChild(info);
+            layoutItem.appendChild(actions);
+            
+            layoutsContainer.appendChild(layoutItem);
+          });
+        }
+        
+        this.loadModal.style.display = 'flex';
+      }
+      
+      // 読込モーダル非表示
+      hideLoadModal() {
+        this.loadModal.style.display = 'none';
+      }
+      
+      // レイアウト読込
+      loadLayout(layout) {
+        // 既存のオブジェクトをクリア
+        this.clearLayoutWithoutConfirmation();
+        
+        // オブジェクトを復元
+        this.objects = [...layout.objects];
+        this.objects.forEach(object => this.renderObject(object));
+        
+        // 選択状態をリセット
+        this.selectedObject = null;
+        
+        // ズームを復元
+        if (layout.scale) {
+          this.currentScale = layout.scale;
+          this.applyZoom();
+        }
+        
+        this.updateObjectList();
+        this.hideLoadModal();
+        this.showToast(`レイアウト「${layout.name}」を読み込みました`, 'success');
+      }
+      
+      // 保存済みレイアウト削除
+      deleteSavedLayout(name) {
+        let savedLayouts = JSON.parse(localStorage.getItem('layoutAppLayouts') || '[]');
+        savedLayouts = savedLayouts.filter(layout => layout.name !== name);
+        localStorage.setItem('layoutAppLayouts', JSON.stringify(savedLayouts));
+        
+        this.showToast(`レイアウト「${name}」を削除しました`);
+        this.showLoadModal(); // リスト更新
+      }
+      
+      // レイアウトクリア
+      clearLayout() {
+        if (confirm('現在のレイアウトをクリアしますか？この操作は元に戻せません。')) {
+          this.clearLayoutWithoutConfirmation();
+        }
+      }
+      
+      // 確認なしでレイアウトクリア（内部用）
+      clearLayoutWithoutConfirmation() {
+        // キャンバス上のオブジェクトを削除
+        this.objects.forEach(object => {
+          const objectElement = document.getElementById(`object-${object.id}`);
+          if (objectElement) {
+            objectElement.remove();
+          }
+        });
+        
+        // データのクリア
+        this.objects = [];
+        this.selectedObject = null;
+        this.updateObjectList();
+      }
+      
+      // トースト通知表示
+      showToast(message, type = '') {
+        const toast = document.createElement('div');
+        toast.className = `toast ${type}`;
+        toast.textContent = message;
+        this.toastContainer.appendChild(toast);
+        
+        // 一定時間後に削除
+        setTimeout(() => {
+          toast.remove();
+        }, 3000);
+      }
+    }
+    
+    // アプリケーション初期化
+    document.addEventListener('DOMContentLoaded', () => {
+      const app = new LayoutApp();
+    });
+  </script>
+</body>
+</html>
