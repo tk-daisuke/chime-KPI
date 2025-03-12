@@ -1,0 +1,1032 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>置き場レイアウト作成ツール</title>
+  <style>
+    /* 全体のスタイル */
+    :root {
+      --primary-color: #1B6C8C;
+      --secondary-color: #BF8136;
+      --light-color: #F2E8E4;
+      --dark-color: #260101;
+      --accent-color: #BF5656;
+      --grid-color: #e0e0e0;
+      --grid-size: 20px;
+    }
+    
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+    
+    body {
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+      overflow: hidden;
+      background-color: #f8f9fa;
+    }
+    
+    /* ヘッダー */
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 10px 20px;
+      background-color: var(--primary-color);
+      color: white;
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+    }
+    
+    header h1 {
+      font-size: 1.8rem;
+      font-weight: 600;
+    }
+    
+    .tool-controls {
+      display: flex;
+      gap: 15px;
+    }
+    
+    button {
+      background-color: var(--secondary-color);
+      color: white;
+      border: none;
+      padding: 8px 15px;
+      border-radius: 4px;
+      cursor: pointer;
+      transition: background-color 0.2s;
+      font-weight: 500;
+    }
+    
+    button:hover {
+      background-color: #a26b2e;
+    }
+    
+    button i {
+      margin-right: 5px;
+    }
+    
+    /* メインコンテンツ */
+    .main-container {
+      display: flex;
+      flex: 1;
+      overflow: hidden;
+    }
+    
+    /* サイドバー */
+    .sidebar {
+      width: 320px;
+      background-color: white;
+      padding: 20px;
+      box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1);
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+    }
+    
+    .sidebar h2 {
+      margin-bottom: 15px;
+      color: var(--primary-color);
+      font-size: 1.4rem;
+    }
+    
+    .tab-container {
+      display: flex;
+      margin-bottom: 15px;
+      border-bottom: 1px solid #ddd;
+    }
+    
+    .tab {
+      padding: 8px 15px;
+      flex: 1;
+      text-align: center;
+      cursor: pointer;
+      background-color: #f8f9fa;
+      transition: all 0.2s;
+    }
+    
+    .tab.active {
+      background-color: var(--primary-color);
+      color: white;
+      font-weight: bold;
+    }
+    
+    .tab-content {
+      display: none;
+      flex-direction: column;
+      gap: 15px;
+    }
+    
+    .tab-content.active {
+      display: flex;
+    }
+    
+    /* フォーム要素 */
+    .form-group {
+      margin-bottom: 15px;
+    }
+    
+    .form-group label {
+      display: block;
+      margin-bottom: 5px;
+      font-weight: 500;
+      color: #333;
+    }
+    
+    .form-group input, .form-group select {
+      width: 100%;
+      padding: 8px 10px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      font-size: 14px;
+    }
+    
+    .color-preview {
+      width: 25px;
+      height: 25px;
+      display: inline-block;
+      border: 1px solid #ccc;
+      vertical-align: middle;
+      margin-left: 10px;
+    }
+    
+    .checkbox-group {
+      display: flex;
+      align-items: center;
+      margin-top: 5px;
+    }
+    
+    .checkbox-group input {
+      width: auto;
+      margin-right: 8px;
+    }
+    
+    .dimension-group {
+      display: flex;
+      gap: 10px;
+    }
+    
+    .dimension-group .form-group {
+      flex: 1;
+    }
+    
+    /* オブジェクトリスト */
+    .object-list {
+      margin-top: 20px;
+      border: 1px solid #ddd;
+      border-radius: 5px;
+      max-height: 300px;
+      overflow-y: auto;
+    }
+    
+    .object-item {
+      padding: 10px;
+      border-bottom: 1px solid #eee;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      transition: background-color 0.2s;
+    }
+    
+    .object-item:hover {
+      background-color: #f5f5f5;
+    }
+    
+    .object-item:last-child {
+      border-bottom: none;
+    }
+    
+    .object-info {
+      flex: 1;
+    }
+    
+    .object-name {
+      font-weight: 500;
+      margin-bottom: 3px;
+    }
+    
+    .object-meta {
+      font-size: 12px;
+      color: #666;
+    }
+    
+    .object-actions {
+      display: flex;
+      gap: 8px;
+    }
+    
+    .object-actions button {
+      padding: 4px 8px;
+      font-size: 12px;
+      background-color: #f0f0f0;
+      color: #333;
+    }
+    
+    .object-actions button:hover {
+      background-color: #e0e0e0;
+    }
+    
+    /* キャンバスエリア */
+    .canvas-container {
+      flex: 1;
+      position: relative;
+      overflow: auto;
+      background-color: white;
+    }
+    
+    .canvas {
+      position: relative;
+      width: 3000px;
+      height: 2000px;
+      background-color: white;
+      background-image: 
+        linear-gradient(var(--grid-color) 1px, transparent 1px),
+        linear-gradient(90deg, var(--grid-color) 1px, transparent 1px);
+      background-size: var(--grid-size) var(--grid-size);
+      overflow: hidden;
+    }
+    
+    /* キャンバス上のオブジェクト */
+    .layout-object {
+      position: absolute;
+      border: 1px solid #333;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: move;
+      user-select: none;
+      font-size: 12px;
+      text-align: center;
+      overflow: hidden;
+      background-color: rgba(255, 255, 255, 0.7);
+      box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.2);
+      transition: box-shadow 0.2s;
+    }
+    
+    .layout-object.fixed {
+      cursor: not-allowed;
+      background-image: repeating-linear-gradient(
+        45deg,
+        rgba(0, 0, 0, 0.05),
+        rgba(0, 0, 0, 0.05) 10px,
+        rgba(255, 255, 255, 0.05) 10px,
+        rgba(255, 255, 255, 0.05) 20px
+      );
+    }
+    
+    .layout-object:hover {
+      box-shadow: 3px 3px 8px rgba(0, 0, 0, 0.3);
+      z-index: 10;
+    }
+    
+    .layout-object.selected {
+      border: 2px solid var(--primary-color);
+      z-index: 100;
+    }
+    
+    .object-label {
+      font-weight: bold;
+      padding: 4px;
+      font-size: 14px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      max-width: 100%;
+    }
+    
+    .object-dimension {
+      font-size: 10px;
+      color: #666;
+      margin-top: 2px;
+    }
+    
+    /* ズームコントロール */
+    .zoom-controls {
+      position: absolute;
+      bottom: 20px;
+      right: 20px;
+      display: flex;
+      gap: 10px;
+      background-color: white;
+      padding: 5px;
+      border-radius: 5px;
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    }
+    
+    .zoom-controls button {
+      width: 36px;
+      height: 36px;
+      padding: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: bold;
+      font-size: 16px;
+    }
+    
+    /* レスポンシブ対応 */
+    @media (max-width: 768px) {
+      .main-container {
+        flex-direction: column;
+      }
+      
+      .sidebar {
+        width: 100%;
+        max-height: 300px;
+      }
+    }
+    
+    /* モーダル */
+    .modal-overlay {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0, 0, 0, 0.5);
+      z-index: 1000;
+      align-items: center;
+      justify-content: center;
+    }
+    
+    .modal {
+      background-color: white;
+      padding: 20px;
+      border-radius: 8px;
+      width: 400px;
+      max-width: 90%;
+      box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+    }
+    
+    .modal h2 {
+      margin-bottom: 15px;
+      color: var(--primary-color);
+    }
+    
+    .modal-buttons {
+      display: flex;
+      justify-content: flex-end;
+      gap: 10px;
+      margin-top: 20px;
+    }
+    
+    /* トースト通知 */
+    .toast-container {
+      position: fixed;
+      bottom: 20px;
+      left: 20px;
+      z-index: 1000;
+    }
+    
+    .toast {
+      background-color: #333;
+      color: white;
+      padding: 10px 15px;
+      border-radius: 4px;
+      margin-bottom: 10px;
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+      animation: fadeIn 0.3s, fadeOut 0.3s 2.7s;
+      opacity: 0;
+      animation-fill-mode: forwards;
+    }
+    
+    .toast.success {
+      background-color: #28a745;
+    }
+    
+    .toast.error {
+      background-color: var(--accent-color);
+    }
+    
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    
+    @keyframes fadeOut {
+      from { opacity: 1; transform: translateY(0); }
+      to { opacity: 0; transform: translateY(-20px); }
+    }
+  </style>
+  <!-- Font Awesome CDNの読み込み -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+  <!-- ヘッダー -->
+  <header>
+    <h1><i class="fas fa-map-location-dot"></i> 置き場レイアウト作成ツール</h1>
+    <div class="tool-controls">
+      <button id="saveBtn"><i class="fas fa-save"></i> 保存</button>
+      <button id="loadBtn"><i class="fas fa-folder-open"></i> 読込</button>
+      <button id="clearBtn"><i class="fas fa-trash-alt"></i> クリア</button>
+    </div>
+  </header>
+  
+  <!-- メインコンテンツ -->
+  <div class="main-container">
+    <!-- サイドバー -->
+    <div class="sidebar">
+      <div class="tab-container">
+        <div class="tab active" data-tab="object-form">オブジェクト追加</div>
+        <div class="tab" data-tab="object-list">オブジェクト一覧</div>
+      </div>
+      
+      <!-- オブジェクト追加フォーム -->
+      <div class="tab-content active" id="object-form">
+        <h2>新規オブジェクト</h2>
+        
+        <div class="form-group">
+          <label for="objectName">名前</label>
+          <input type="text" id="objectName" placeholder="例: 作業台1">
+        </div>
+        
+        <div class="dimension-group">
+          <div class="form-group">
+            <label for="objectWidth">幅 (cm)</label>
+            <input type="number" id="objectWidth" min="10" value="100">
+          </div>
+          
+          <div class="form-group">
+            <label for="objectHeight">奥行き (cm)</label>
+            <input type="number" id="objectHeight" min="10" value="100">
+          </div>
+        </div>
+        
+        <div class="form-group">
+          <label for="objectColor">色 <span id="colorPreview" class="color-preview"></span></label>
+          <input type="color" id="objectColor" value="#1B6C8C">
+        </div>
+        
+        <div class="form-group">
+          <div class="checkbox-group">
+            <input type="checkbox" id="isFixed">
+            <label for="isFixed">固定オブジェクト（移動不可）</label>
+          </div>
+        </div>
+        
+        <button id="addObjectBtn"><i class="fas fa-plus"></i> オブジェクト追加</button>
+      </div>
+      
+      <!-- オブジェクト一覧 -->
+      <div class="tab-content" id="object-list">
+        <h2>配置済みオブジェクト</h2>
+        <div class="object-list" id="objectListContainer">
+          <!-- オブジェクトリストはJSで動的に生成 -->
+        </div>
+      </div>
+    </div>
+    
+    <!-- キャンバスエリア -->
+    <div class="canvas-container">
+      <div class="canvas" id="layoutCanvas">
+        <!-- オブジェクトはJSで動的に生成 -->
+      </div>
+      
+      <!-- ズームコントロール -->
+      <div class="zoom-controls">
+        <button id="zoomInBtn"><i class="fas fa-plus"></i></button>
+        <button id="zoomOutBtn"><i class="fas fa-minus"></i></button>
+        <button id="zoomResetBtn"><i class="fas fa-expand"></i></button>
+      </div>
+    </div>
+  </div>
+  
+  <!-- 保存モーダル -->
+  <div class="modal-overlay" id="saveModal">
+    <div class="modal">
+      <h2>レイアウトを保存</h2>
+      <div class="form-group">
+        <label for="layoutName">レイアウト名</label>
+        <input type="text" id="layoutName" placeholder="例: 倉庫レイアウト案1">
+      </div>
+      <div class="modal-buttons">
+        <button id="cancelSaveBtn">キャンセル</button>
+        <button id="confirmSaveBtn">保存</button>
+      </div>
+    </div>
+  </div>
+  
+  <!-- 読込モーダル -->
+  <div class="modal-overlay" id="loadModal">
+    <div class="modal">
+      <h2>レイアウトを読込</h2>
+      <div id="savedLayouts">
+        <!-- 保存済みレイアウトはJSで動的に生成 -->
+      </div>
+      <div class="modal-buttons">
+        <button id="cancelLoadBtn">キャンセル</button>
+      </div>
+    </div>
+  </div>
+  
+  <!-- トースト通知コンテナ -->
+  <div class="toast-container" id="toastContainer">
+    <!-- 通知はJSで動的に生成 -->
+  </div>
+  
+  <script>
+    // アプリケーションの主要クラス
+    class LayoutApp {
+      constructor() {
+        // DOM要素
+        this.canvas = document.getElementById('layoutCanvas');
+        this.objectListContainer = document.getElementById('objectListContainer');
+        this.saveModal = document.getElementById('saveModal');
+        this.loadModal = document.getElementById('loadModal');
+        this.toastContainer = document.getElementById('toastContainer');
+        
+        // フォーム要素
+        this.objectNameInput = document.getElementById('objectName');
+        this.objectWidthInput = document.getElementById('objectWidth');
+        this.objectHeightInput = document.getElementById('objectHeight');
+        this.objectColorInput = document.getElementById('objectColor');
+        this.isFixedInput = document.getElementById('isFixed');
+        this.colorPreview = document.getElementById('colorPreview');
+        
+        // 状態管理
+        this.objects = [];
+        this.selectedObject = null;
+        this.isDragging = false;
+        this.dragOffsetX = 0;
+        this.dragOffsetY = 0;
+        this.currentScale = 1;
+        
+        // 初期化
+        this.initEventListeners();
+        this.updateColorPreview();
+        this.initTabs();
+      }
+      
+      // イベントリスナー初期化
+      initEventListeners() {
+        // オブジェクト追加ボタン
+        document.getElementById('addObjectBtn').addEventListener('click', () => this.addObject());
+        
+        // 色選択の更新
+        this.objectColorInput.addEventListener('input', () => this.updateColorPreview());
+        
+        // キャンバスのイベント
+        this.canvas.addEventListener('mousedown', (e) => this.handleCanvasMouseDown(e));
+        document.addEventListener('mousemove', (e) => this.handleDocumentMouseMove(e));
+        document.addEventListener('mouseup', () => this.handleDocumentMouseUp());
+        
+        // ズームコントロール
+        document.getElementById('zoomInBtn').addEventListener('click', () => this.zoomIn());
+        document.getElementById('zoomOutBtn').addEventListener('click', () => this.zoomOut());
+        document.getElementById('zoomResetBtn').addEventListener('click', () => this.zoomReset());
+        
+        // 保存/読込ボタン
+        document.getElementById('saveBtn').addEventListener('click', () => this.showSaveModal());
+        document.getElementById('loadBtn').addEventListener('click', () => this.showLoadModal());
+        document.getElementById('clearBtn').addEventListener('click', () => this.clearLayout());
+        
+        // モーダルボタン
+        document.getElementById('cancelSaveBtn').addEventListener('click', () => this.hideSaveModal());
+        document.getElementById('confirmSaveBtn').addEventListener('click', () => this.saveLayout());
+        document.getElementById('cancelLoadBtn').addEventListener('click', () => this.hideLoadModal());
+      }
+      
+      // タブ切り替え初期化
+      initTabs() {
+        const tabs = document.querySelectorAll('.tab');
+        const tabContents = document.querySelectorAll('.tab-content');
+        
+        tabs.forEach(tab => {
+          tab.addEventListener('click', () => {
+            // アクティブタブの切り替え
+            tabs.forEach(t => t.classList.remove('active'));
+            tab.classList.add('active');
+            
+            // タブコンテンツの切り替え
+            tabContents.forEach(content => content.classList.remove('active'));
+            const tabId = tab.dataset.tab;
+            document.getElementById(tabId).classList.add('active');
+          });
+        });
+      }
+      
+      // 色プレビューの更新
+      updateColorPreview() {
+        this.colorPreview.style.backgroundColor = this.objectColorInput.value;
+      }
+      
+      // オブジェクト追加
+      addObject() {
+        const name = this.objectNameInput.value.trim() || `オブジェクト${this.objects.length + 1}`;
+        const width = parseInt(this.objectWidthInput.value) || 100;
+        const height = parseInt(this.objectHeightInput.value) || 100;
+        const color = this.objectColorInput.value;
+        const isFixed = this.isFixedInput.checked;
+        
+        // オブジェクト作成
+        const object = {
+          id: Date.now().toString(),
+          name,
+          width,
+          height,
+          color,
+          isFixed,
+          x: 100,
+          y: 100
+        };
+        
+        this.objects.push(object);
+        this.renderObject(object);
+        this.updateObjectList();
+        this.resetForm();
+        
+        this.showToast('オブジェクトを追加しました', 'success');
+      }
+      
+      // オブジェクトのDOM要素作成
+      renderObject(object) {
+        const objectElement = document.createElement('div');
+        objectElement.id = `object-${object.id}`;
+        objectElement.className = `layout-object${object.isFixed ? ' fixed' : ''}`;
+        objectElement.style.width = `${object.width / 2}px`; // スケール調整（2cm = 1px）
+        objectElement.style.height = `${object.height / 2}px`;
+        objectElement.style.backgroundColor = object.color;
+        objectElement.style.left = `${object.x}px`;
+        objectElement.style.top = `${object.y}px`;
+        
+        // オブジェクトの内容
+        const label = document.createElement('div');
+        label.className = 'object-label';
+        label.textContent = object.name;
+        
+        const dimension = document.createElement('div');
+        dimension.className = 'object-dimension';
+        dimension.textContent = `${object.width}×${object.height}cm`;
+        
+        objectElement.appendChild(label);
+        objectElement.appendChild(dimension);
+        
+        this.canvas.appendChild(objectElement);
+      }
+      
+      // オブジェクトリストの更新
+      updateObjectList() {
+        this.objectListContainer.innerHTML = '';
+        
+        if (this.objects.length === 0) {
+          const emptyMsg = document.createElement('div');
+          emptyMsg.className = 'object-item';
+          emptyMsg.textContent = 'オブジェクトがありません';
+          this.objectListContainer.appendChild(emptyMsg);
+          return;
+        }
+        
+        this.objects.forEach(object => {
+          const item = document.createElement('div');
+          item.className = 'object-item';
+          
+          const info = document.createElement('div');
+          info.className = 'object-info';
+          
+          const name = document.createElement('div');
+          name.className = 'object-name';
+          name.textContent = object.name;
+          
+          const meta = document.createElement('div');
+          meta.className = 'object-meta';
+          meta.textContent = `${object.width}×${object.height}cm · ${object.isFixed ? '固定' : '稼働'}`;
+          
+          info.appendChild(name);
+          info.appendChild(meta);
+          
+          const actions = document.createElement('div');
+          actions.className = 'object-actions';
+          
+          const selectBtn = document.createElement('button');
+          selectBtn.innerHTML = '<i class="fas fa-search"></i>';
+          selectBtn.title = '選択';
+          selectBtn.addEventListener('click', () => this.selectObjectById(object.id));
+          
+          const deleteBtn = document.createElement('button');
+          deleteBtn.innerHTML = '<i class="fas fa-trash"></i>';
+          deleteBtn.title = '削除';
+          deleteBtn.addEventListener('click', () => this.deleteObject(object.id));
+          
+          actions.appendChild(selectBtn);
+          actions.appendChild(deleteBtn);
+          
+          item.appendChild(info);
+          item.appendChild(actions);
+          
+          this.objectListContainer.appendChild(item);
+        });
+      }
+      
+      // IDによるオブジェクト選択
+      selectObjectById(id) {
+        const objectElement = document.getElementById(`object-${id}`);
+        if (objectElement) {
+          // 既存の選択を解除
+          if (this.selectedObject) {
+            document.getElementById(`object-${this.selectedObject.id}`).classList.remove('selected');
+          }
+          
+                  
+          // 新たに選択
+          this.selectedObject = this.objects.find(obj => obj.id === id);
+          objectElement.classList.add('selected');
+          
+          // キャンバス内でスクロール位置を調整
+          const canvasContainer = document.querySelector('.canvas-container');
+          canvasContainer.scrollLeft = objectElement.offsetLeft - canvasContainer.offsetWidth / 2;
+          canvasContainer.scrollTop = objectElement.offsetTop - canvasContainer.offsetHeight / 2;
+        }
+      }
+      
+      // オブジェクト削除
+      deleteObject(id) {
+        const index = this.objects.findIndex(obj => obj.id === id);
+        if (index !== -1) {
+          // オブジェクトの削除
+          this.objects.splice(index, 1);
+          const objectElement = document.getElementById(`object-${id}`);
+          if (objectElement) {
+            objectElement.remove();
+          }
+          
+          // 選択状態の更新
+          if (this.selectedObject && this.selectedObject.id === id) {
+            this.selectedObject = null;
+          }
+          
+          this.updateObjectList();
+          this.showToast('オブジェクトを削除しました');
+        }
+      }
+      
+      // フォームのリセット
+      resetForm() {
+        this.objectNameInput.value = '';
+        this.isFixedInput.checked = false;
+      }
+      
+      // キャンバス上のマウスダウンイベント
+      handleCanvasMouseDown(e) {
+        if (e.target.closest('.layout-object')) {
+          const objectElement = e.target.closest('.layout-object');
+          const id = objectElement.id.replace('object-', '');
+          const object = this.objects.find(obj => obj.id === id);
+          
+          if (object && !object.isFixed) {
+            this.isDragging = true;
+            this.dragOffsetX = e.clientX - objectElement.offsetLeft;
+            this.dragOffsetY = e.clientY - objectElement.offsetTop;
+            
+            // 既存の選択を解除
+            if (this.selectedObject) {
+              document.getElementById(`object-${this.selectedObject.id}`).classList.remove('selected');
+            }
+            
+            // 新たに選択
+            this.selectedObject = object;
+            objectElement.classList.add('selected');
+          }
+        } else {
+          // キャンバス上の空白部分をクリックした場合は選択解除
+          if (this.selectedObject) {
+            document.getElementById(`object-${this.selectedObject.id}`).classList.remove('selected');
+            this.selectedObject = null;
+          }
+        }
+      }
+      
+      // ドキュメント全体のマウス移動イベント
+      handleDocumentMouseMove(e) {
+        if (this.isDragging && this.selectedObject && !this.selectedObject.isFixed) {
+          const newX = e.clientX - this.dragOffsetX;
+          const newY = e.clientY - this.dragOffsetY;
+          
+          // オブジェクトの位置を更新
+          const objectElement = document.getElementById(`object-${this.selectedObject.id}`);
+          objectElement.style.left = `${newX}px`;
+          objectElement.style.top = `${newY}px`;
+          
+          // データも更新
+          this.selectedObject.x = newX;
+          this.selectedObject.y = newY;
+        }
+      }
+      
+      // ドキュメント全体のマウスアップイベント
+      handleDocumentMouseUp() {
+        if (this.isDragging) {
+          this.isDragging = false;
+        }
+      }
+      
+      // ズームイン
+      zoomIn() {
+        if (this.currentScale < 2) {
+          this.currentScale += 0.1;
+          this.applyZoom();
+        }
+      }
+      
+      // ズームアウト
+      zoomOut() {
+        if (this.currentScale > 0.5) {
+          this.currentScale -= 0.1;
+          this.applyZoom();
+        }
+      }
+      
+      // ズームリセット
+      zoomReset() {
+        this.currentScale = 1;
+        this.applyZoom();
+      }
+      
+      // ズーム適用
+      applyZoom() {
+        this.canvas.style.transform = `scale(${this.currentScale})`;
+        this.canvas.style.transformOrigin = '0 0';
+      }
+      
+      // 保存モーダル表示
+      showSaveModal() {
+        document.getElementById('layoutName').value = '';
+        this.saveModal.style.display = 'flex';
+      }
+      
+      // 保存モーダル非表示
+      hideSaveModal() {
+        this.saveModal.style.display = 'none';
+      }
+      
+      // レイアウト保存
+      saveLayout() {
+        const name = document.getElementById('layoutName').value.trim();
+        if (!name) {
+          this.showToast('レイアウト名を入力してください', 'error');
+          return;
+        }
+        
+        const layoutData = {
+          name,
+          date: new Date().toLocaleString(),
+          objects: [...this.objects],
+          scale: this.currentScale
+        };
+        
+        // ローカルストレージから既存のレイアウトを取得
+        let savedLayouts = JSON.parse(localStorage.getItem('layoutAppLayouts') || '[]');
+        
+        // 同名のレイアウトがあれば上書き
+        const existingIndex = savedLayouts.findIndex(layout => layout.name === name);
+        if (existingIndex !== -1) {
+          savedLayouts[existingIndex] = layoutData;
+        } else {
+          savedLayouts.push(layoutData);
+        }
+        
+        // ローカルストレージに保存
+        localStorage.setItem('layoutAppLayouts', JSON.stringify(savedLayouts));
+        
+        this.hideSaveModal();
+        this.showToast(`レイアウト「${name}」を保存しました`, 'success');
+      }
+      
+      // 読込モーダル表示
+      showLoadModal() {
+        const savedLayouts = JSON.parse(localStorage.getItem('layoutAppLayouts') || '[]');
+        const layoutsContainer = document.getElementById('savedLayouts');
+        layoutsContainer.innerHTML = '';
+        
+        if (savedLayouts.length === 0) {
+          layoutsContainer.innerHTML = '<p>保存されたレイアウトはありません</p>';
+        } else {
+          savedLayouts.forEach(layout => {
+            const layoutItem = document.createElement('div');
+            layoutItem.className = 'object-item';
+            
+            const info = document.createElement('div');
+            info.className = 'object-info';
+            
+            const name = document.createElement('div');
+            name.className = 'object-name';
+            name.textContent = layout.name;
+            
+            const meta = document.createElement('div');
+            meta.className = 'object-meta';
+            meta.textContent = `保存日時: ${layout.date} · オブジェクト数: ${layout.objects.length}`;
+            
+            info.appendChild(name);
+            info.appendChild(meta);
+            
+            const actions = document.createElement('div');
+            actions.className = 'object-actions';
+            
+            const loadBtn = document.createElement('button');
+            loadBtn.textContent = '読込';
+            loadBtn.addEventListener('click', () => this.loadLayout(layout));
+            
+            const deleteBtn = document.createElement('button');
+            deleteBtn.innerHTML = '<i class="fas fa-trash"></i>';
+            deleteBtn.addEventListener('click', () => this.deleteSavedLayout(layout.name));
+            
+            actions.appendChild(loadBtn);
+            actions.appendChild(deleteBtn);
+            
+            layoutItem.appendChild(info);
+            layoutItem.appendChild(actions);
+            
+            layoutsContainer.appendChild(layoutItem);
+          });
+        }
+        
+        this.loadModal.style.display = 'flex';
+      }
+      
+      // 読込モーダル非表示
+      hideLoadModal() {
+        this.loadModal.style.display = 'none';
+      }
+      
+      // レイアウト読込
+      loadLayout(layout) {
+        // 既存のオブジェクトをクリア
+        this.clearLayoutWithoutConfirmation();
+        
+        // オブジェクトを復元
+        this.objects = [...layout.objects];
+        this.objects.forEach(object => this.renderObject(object));
+        
+        // 選択状態をリセット
+        this.selectedObject = null;
+        
+        // ズームを復元
+        if (layout.scale) {
+          this.currentScale = layout.scale;
+          this.applyZoom();
+        }
+        
+        this.updateObjectList();
+        this.hideLoadModal();
+        this.showToast(`レイアウト「${layout.name}」を読み込みました`, 'success');
+      }
+      
+      // 保存済みレイアウト削除
+      deleteSavedLayout(name) {
+        let savedLayouts = JSON.parse(localStorage.getItem('layoutAppLayouts') || '[]');
+        savedLayouts = savedLayouts.filter(layout => layout.name !== name);
+        localStorage.setItem('layoutAppLayouts', JSON.stringify(savedLayouts));
+        
+        this.showToast(`レイアウト「${name}」を削除しました`);
+        this.showLoadModal(); // リスト更新
+      }
+      
+      // レイアウトクリア
+      clearLayout() {
+        if (confirm('現在のレイアウトをクリアしますか？この操作は元に戻せません。')) {
+          this.clearLayoutWithoutConfirmation();
+        }
+      }
+      
+      // 確認なしでレイアウトクリア（内部用）
+      clearLayoutWithoutConfirmation() {
+        // キャンバス上のオブジェクトを削除
+        this.objects.forEach(object => {
+          const objectElement = document.getElementById(`object-${object.id}`);
+          if (objectElement) {
+            objectElement.remove();
+          }
+        });
+        
+        // データのクリア
+        this.objects = [];
+        this.selectedObject = null;
+        this.updateObjectList();
+      }
+      
+      // トースト通知表示
+      showToast(message, type = '') {
+        const toast = document.createElement('div');
+        toast.className = `toast ${type}`;
+        toast.textContent = message;
+        this.toastContainer.appendChild(toast);
+        
+        // 一定時間後に削除
+        setTimeout(() => {
+          toast.remove();
+        }, 3000);
+      }
+    }
+    
+    // アプリケーション初期化
+    document.addEventListener('DOMContentLoaded', () => {
+      const app = new LayoutApp();
+    });
+  </script>
+</body>
+</html>
