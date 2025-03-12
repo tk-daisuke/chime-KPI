@@ -67,8 +67,8 @@ class ExcelSvc:
             sheet_name=file_info['sheet']
         )
 
-    def updateBook(self, filePath):
-        """Excelブック更新"""
+    def forceRefreshWorkbook(self, filePath):
+        """Excelブックの内部関数更新のため、強制的にExcelを開いてブックを更新します"""
         try:
             app = xw.App(visible=False)
             wb = app.books.open(filePath)

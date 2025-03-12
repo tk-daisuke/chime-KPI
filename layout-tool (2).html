@@ -14,6 +14,7 @@
       --accent-color: #BF5656;
       --grid-color: #e0e0e0;
       --grid-size: 20px;
+      --scale-factor: 2; /* 2cm = 1px の変換率 */
     }
     
     * {
@@ -239,6 +240,10 @@
       background-color: white;
     }
     
+    .canvas-wrapper {
+      position: relative;
+    }
+    
     .canvas {
       position: relative;
       width: 3000px;
@@ -249,6 +254,82 @@
         linear-gradient(90deg, var(--grid-color) 1px, transparent 1px);
       background-size: var(--grid-size) var(--grid-size);
       overflow: hidden;
+      margin-left: 40px;
+      margin-top: 40px;
+    }
+    
+    /* グリッド目盛り */
+    .grid-ruler-x {
+      position: absolute;
+      top: 0;
+      left: 40px;
+      right: 0;
+      height: 40px;
+      background: #f9f9f9;
+      border-bottom: 1px solid #ddd;
+      overflow: hidden;
+    }
+    
+    .grid-ruler-y {
+      position: absolute;
+      top: 40px;
+      left: 0;
+      width: 40px;
+      bottom: 0;
+      background: #f9f9f9;
+      border-right: 1px solid #ddd;
+      overflow: hidden;
+    }
+    
+    .ruler-corner {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 40px;
+      height: 40px;
+      background: #f0f0f0;
+      border-right: 1px solid #ddd;
+      border-bottom: 1px solid #ddd;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      font-size: 12px;
+      color: #666;
+    }
+    
+    .ruler-mark-x {
+      position: absolute;
+      top: 0;
+      width: 1px;
+      height: 8px;
+      background-color: #999;
+      bottom: 0;
+    }
+    
+    .ruler-mark-y {
+      position: absolute;
+      left: 0;
+      height: 1px;
+      width: 8px;
+      background-color: #999;
+      right: 0;
+    }
+    
+    .ruler-text-x {
+      position: absolute;
+      bottom: 5px;
+      transform: translateX(-50%);
+      font-size: 10px;
+      color: #666;
+    }
+    
+    .ruler-text-y {
+      position: absolute;
+      right: 5px;
+      transform: translateY(-50%);
+      font-size: 10px;
+      color: #666;
     }
     
     /* キャンバス上のオブジェクト */
@@ -256,6 +337,7 @@
       position: absolute;
       border: 1px solid #333;
       display: flex;
+      flex-direction: column;
       align-items: center;
       justify-content: center;
       cursor: move;
@@ -303,6 +385,130 @@
       font-size: 10px;
       color: #666;
       margin-top: 2px;
+    }
+    
+    /* 距離測定ライン */
+    .measurement-line {
+      position: absolute;
+      height: 1.5px;
+      background-color: rgba(191, 86, 86, 0.5);
+      z-index: 50;
+      pointer-events: none;
+    }
+    
+    .measurement-line:hover {
+      background-color: var(--accent-color);
+      height: 2px;
+      z-index: 55;
+    }
+    
+    .measurement-label {
+      position: absolute;
+      background-color: rgba(191, 86, 86, 0.7);
+      color: white;
+      padding: 1px 4px;
+      border-radius: 3px;
+      font-size: 10px;
+      z-index: 51;
+      pointer-events: none;
+      transform: translate(-50%, -50%);
+      white-space: nowrap;
+    }
+    
+    .measurement-label:hover {
+      background-color: var(--accent-color);
+      padding: 2px 6px;
+      font-size: 12px;
+      z-index: 56;
+    }
+    
+    .measurements-container {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: 40;
+    }
+    
+    /* ツールバー */
+    .toolbar {
+      display: flex;
+      align-items: center;
+      padding: 10px;
+      background-color: #f0f0f0;
+      border-bottom: 1px solid #ddd;
+    }
+    
+    .toolbar button {
+      margin-right: 10px;
+    }
+    
+    .toolbar-info {
+      margin-left: auto;
+      padding: 5px 10px;
+      background-color: var(--light-color);
+      border-radius: 5px;
+      font-size: 12px;
+      color: #666;
+    }
+    
+    /* 切替スイッチ */
+    .switch-container {
+      display: flex;
+      align-items: center;
+      margin-right: 15px;
+    }
+    
+    .switch-label {
+      margin-right: 8px;
+      font-size: 14px;
+    }
+    
+    .switch {
+      position: relative;
+      display: inline-block;
+      width: 40px;
+      height: 20px;
+    }
+    
+    .switch input {
+      opacity: 0;
+      width: 0;
+      height: 0;
+    }
+    
+    .slider {
+      position: absolute;
+      cursor: pointer;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background-color: #ccc;
+      transition: 0.4s;
+      border-radius: 34px;
+    }
+    
+    .slider:before {
+      position: absolute;
+      content: "";
+      height: 16px;
+      width: 16px;
+      left: 2px;
+      bottom: 2px;
+      background-color: white;
+      transition: 0.4s;
+      border-radius: 50%;
+    }
+    
+    input:checked + .slider {
+      background-color: var(--primary-color);
+    }
+    
+    input:checked + .slider:before {
+      transform: translateX(20px);
     }
     
     /* ズームコントロール */
@@ -424,9 +630,25 @@
     <div class="tool-controls">
       <button id="saveBtn"><i class="fas fa-save"></i> 保存</button>
       <button id="loadBtn"><i class="fas fa-folder-open"></i> 読込</button>
+      <button id="exportBtn"><i class="fas fa-file-export"></i> エクスポート</button>
+      <button id="shareBtn"><i class="fas fa-share-alt"></i> 共有</button>
       <button id="clearBtn"><i class="fas fa-trash-alt"></i> クリア</button>
     </div>
   </header>
+  
+  <!-- ツールバー -->
+  <div class="toolbar">
+    <div class="switch-container">
+      <span class="switch-label">距離表示:</span>
+      <label class="switch">
+        <input type="checkbox" id="showDistancesToggle" checked>
+        <span class="slider"></span>
+      </label>
+    </div>
+    <div class="toolbar-info">
+      オブジェクト数: <span id="objectCount">0</span>
+    </div>
+  </div>
   
   <!-- メインコンテンツ -->
   <div class="main-container">
@@ -444,6 +666,10 @@
         <div class="form-group">
           <label for="objectName">名前</label>
           <input type="text" id="objectName" placeholder="例: 作業台1">
+        </div>
+        <div class="form-group">
+          <label for="objectGroup">フォルダ名 (オプション)</label>
+          <input type="text" id="objectGroup" placeholder="例: フォルダ1">
         </div>
         
         <div class="dimension-group">
@@ -484,8 +710,30 @@
     
     <!-- キャンバスエリア -->
     <div class="canvas-container">
-      <div class="canvas" id="layoutCanvas">
-        <!-- オブジェクトはJSで動的に生成 -->
+      <div class="canvas-wrapper">
+        <!-- 目盛りの角 -->
+        <div class="ruler-corner">
+          <div>1グリッド = 20cm</div>
+          <div>1cm = 1px</div>
+        </div>
+        
+        <!-- X軸目盛り -->
+        <div class="grid-ruler-x" id="rulerX">
+          <!-- 目盛りはJSで動的に生成 -->
+        </div>
+        
+        <!-- Y軸目盛り -->
+        <div class="grid-ruler-y" id="rulerY">
+          <!-- 目盛りはJSで動的に生成 -->
+        </div>
+        
+        <!-- キャンバス -->
+        <div class="canvas" id="layoutCanvas">
+          <!-- オブジェクトはJSで動的に生成 -->
+          <div class="measurements-container" id="measurementsContainer">
+            <!-- 距離測定線はJSで動的に生成 -->
+          </div>
+        </div>
       </div>
       
       <!-- ズームコントロール -->
@@ -525,10 +773,73 @@
     </div>
   </div>
   
+  <!-- エクスポートモーダル -->
+  <div class="modal-overlay" id="exportModal">
+    <div class="modal">
+      <h2>エクスポート</h2>
+      <div class="export-options">
+        <div class="export-option" id="exportImage">
+          <i class="fas fa-image"></i>
+          <span class="export-option-title">画像として保存</span>
+          <span class="export-option-desc">PNG形式で画像を保存</span>
+        </div>
+        <div class="export-option" id="exportPDF">
+          <i class="fas fa-file-pdf"></i>
+          <span class="export-option-title">PDFとして保存</span>
+          <span class="export-option-desc">印刷用PDFで出力</span>
+        </div>
+        <div class="export-option" id="exportJSON">
+          <i class="fas fa-file-code"></i>
+          <span class="export-option-title">JSONデータ</span>
+          <span class="export-option-desc">編集可能なデータ形式</span>
+        </div>
+        <div class="export-option" id="exportCSV">
+          <i class="fas fa-file-csv"></i>
+          <span class="export-option-title">CSV出力</span>
+          <span class="export-option-desc">表計算ソフト用データ</span>
+        </div>
+      </div>
+      <div id="previewContainer" class="preview-container" style="display: none;">
+        <!-- プレビュー画像はJSで動的に生成 -->
+      </div>
+      <div class="modal-buttons">
+        <button id="cancelExportBtn">キャンセル</button>
+        <button id="downloadExportBtn" style="display: none;">ダウンロード</button>
+      </div>
+    </div>
+  </div>
+  
+  <!-- 共有モーダル -->
+  <div class="modal-overlay" id="shareModal">
+    <div class="modal">
+      <h2>レイアウトを共有</h2>
+      <div class="share-options">
+        <p>以下のリンクを共有することで、このレイアウトを他の人と共有できます：</p>
+        <input type="text" id="shareURL" class="share-url" readonly>
+        <div class="share-buttons">
+          <button id="copyShareURLBtn"><i class="fas fa-copy"></i> URLをコピー</button>
+          <button id="generateQRBtn"><i class="fas fa-qrcode"></i> QRコード表示</button>
+        </div>
+        <div id="qrCodeContainer" style="display: none;">
+          <img id="qrCodeImage" class="share-qrcode">
+        </div>
+      </div>
+      <div class="modal-buttons">
+        <button id="cancelShareBtn">閉じる</button>
+      </div>
+    </div>
+  </div>
+  
   <!-- トースト通知コンテナ -->
   <div class="toast-container" id="toastContainer">
     <!-- 通知はJSで動的に生成 -->
   </div>
+  
+  <!-- 外部ライブラリの読み込み -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcode/1.5.3/qrcode.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/lz-string/1.4.4/lz-string.min.js"></script>
   
   <script>
     // アプリケーションの主要クラス
@@ -539,7 +850,17 @@
         this.objectListContainer = document.getElementById('objectListContainer');
         this.saveModal = document.getElementById('saveModal');
         this.loadModal = document.getElementById('loadModal');
+        this.exportModal = document.getElementById('exportModal');
+        this.shareModal = document.getElementById('shareModal');
         this.toastContainer = document.getElementById('toastContainer');
+        this.rulerX = document.getElementById('rulerX');
+        this.rulerY = document.getElementById('rulerY');
+        this.measurementsContainer = document.getElementById('measurementsContainer');
+        this.objectCountDisplay = document.getElementById('objectCount');
+        this.previewContainer = document.getElementById('previewContainer');
+        this.shareURLInput = document.getElementById('shareURL');
+        this.qrCodeContainer = document.getElementById('qrCodeContainer');
+        this.qrCodeImage = document.getElementById('qrCodeImage');
         
         // フォーム要素
         this.objectNameInput = document.getElementById('objectName');
@@ -548,6 +869,9 @@
         this.objectColorInput = document.getElementById('objectColor');
         this.isFixedInput = document.getElementById('isFixed');
         this.colorPreview = document.getElementById('colorPreview');
+        this.showDistancesToggle = document.getElementById('showDistancesToggle');
+        // 新たにグループ入力欄を取得
+        this.objectGroupInput = document.getElementById('objectGroup');
         
         // 状態管理
         this.objects = [];
@@ -556,11 +880,72 @@
         this.dragOffsetX = 0;
         this.dragOffsetY = 0;
         this.currentScale = 1;
+        this.gridSize = 20; // ピクセル単位のグリッドサイズ
+        this.cmPerGrid = 20; // 1グリッドあたりのcm数 (1グリッド=20cm)
+        this.pixelsPerCm = this.gridSize / this.cmPerGrid; // 1cmあたりのピクセル数
+        this.measurementLines = [];
+        this.measurementLabels = [];
+        // 新規追加: 各グループの折りたたみ状態を管理（true: 折りたたみ）
+        this.groupCollapseState = {};
         
         // 初期化
         this.initEventListeners();
         this.updateColorPreview();
         this.initTabs();
+        this.initRulers();
+      }
+      
+      // 目盛りの初期化
+      initRulers() {
+        // X軸目盛りをクリア
+        this.rulerX.innerHTML = '';
+        
+        // Y軸目盛りをクリア
+        this.rulerY.innerHTML = '';
+        
+        // X軸目盛りの作成
+        const canvasWidth = this.canvas.offsetWidth;
+        const xMarks = Math.floor(canvasWidth / this.gridSize);
+        
+        for (let i = 0; i <= xMarks; i++) {
+          const mark = document.createElement('div');
+          mark.className = 'ruler-mark-x';
+          mark.style.left = `${i * this.gridSize}px`;
+          
+          if (i % 5 === 0) { // 5目盛りごとに数値を表示
+            mark.style.height = '12px';
+            
+            const text = document.createElement('div');
+            text.className = 'ruler-text-x';
+            text.style.left = `${i * this.gridSize}px`;
+            text.textContent = i * this.cmPerGrid; // 実寸表示(cm)
+            this.rulerX.appendChild(text);
+          }
+          
+          this.rulerX.appendChild(mark);
+        }
+        
+        // Y軸目盛りの作成
+        const canvasHeight = this.canvas.offsetHeight;
+        const yMarks = Math.floor(canvasHeight / this.gridSize);
+        
+        for (let i = 0; i <= yMarks; i++) {
+          const mark = document.createElement('div');
+          mark.className = 'ruler-mark-y';
+          mark.style.top = `${i * this.gridSize}px`;
+          
+          if (i % 5 === 0) {
+            mark.style.width = '12px';
+            
+            const text = document.createElement('div');
+            text.className = 'ruler-text-y';
+            text.style.top = `${i * this.gridSize}px`;
+            text.textContent = i * this.cmPerGrid;
+            this.rulerY.appendChild(text);
+          }
+          
+          this.rulerY.appendChild(mark);
+        }
       }
       
       // イベントリスナー初期化
@@ -581,6 +966,16 @@
         document.getElementById('zoomOutBtn').addEventListener('click', () => this.zoomOut());
         document.getElementById('zoomResetBtn').addEventListener('click', () => this.zoomReset());
         
+        // 距離表示の切り替え
+        this.showDistancesToggle.addEventListener('change', () => {
+          if (this.showDistancesToggle.checked) {
+            this.measurementsContainer.style.display = 'block';
+            this.updateAllMeasurements();
+          } else {
+            this.measurementsContainer.style.display = 'none';
+          }
+        });
+        
         // 保存/読込ボタン
         document.getElementById('saveBtn').addEventListener('click', () => this.showSaveModal());
         document.getElementById('loadBtn').addEventListener('click', () => this.showLoadModal());
@@ -590,6 +985,11 @@
         document.getElementById('cancelSaveBtn').addEventListener('click', () => this.hideSaveModal());
         document.getElementById('confirmSaveBtn').addEventListener('click', () => this.saveLayout());
         document.getElementById('cancelLoadBtn').addEventListener('click', () => this.hideLoadModal());
+        
+        // ウィンドウリサイズ時に目盛りを更新
+        window.addEventListener('resize', () => {
+          this.initRulers();
+        });
       }
       
       // タブ切り替え初期化
@@ -623,7 +1023,8 @@
         const height = parseInt(this.objectHeightInput.value) || 100;
         const color = this.objectColorInput.value;
         const isFixed = this.isFixedInput.checked;
-        
+        const group = this.objectGroupInput.value.trim(); // 追加
+
         // オブジェクト作成
         const object = {
           id: Date.now().toString(),
@@ -633,47 +1034,61 @@
           color,
           isFixed,
           x: 100,
-          y: 100
+          y: 100,
+          group // 追加
         };
-        
+
         this.objects.push(object);
         this.renderObject(object);
         this.updateObjectList();
+        this.updateObjectCount();
         this.resetForm();
-        
+
+        // 距離測定を更新
+        this.updateAllMeasurements();
+
         this.showToast('オブジェクトを追加しました', 'success');
       }
-      
+
       // オブジェクトのDOM要素作成
       renderObject(object) {
         const objectElement = document.createElement('div');
         objectElement.id = `object-${object.id}`;
         objectElement.className = `layout-object${object.isFixed ? ' fixed' : ''}`;
-        objectElement.style.width = `${object.width / 2}px`; // スケール調整（2cm = 1px）
-        objectElement.style.height = `${object.height / 2}px`;
+        objectElement.style.width = `${object.width * this.pixelsPerCm}px`;
+        objectElement.style.height = `${object.height * this.pixelsPerCm}px`;
         objectElement.style.backgroundColor = object.color;
         objectElement.style.left = `${object.x}px`;
         objectElement.style.top = `${object.y}px`;
-        
+
         // オブジェクトの内容
         const label = document.createElement('div');
         label.className = 'object-label';
         label.textContent = object.name;
-        
+        objectElement.appendChild(label);
+
         const dimension = document.createElement('div');
         dimension.className = 'object-dimension';
         dimension.textContent = `${object.width}×${object.height}cm`;
-        
-        objectElement.appendChild(label);
         objectElement.appendChild(dimension);
-        
+
+        // フォルダ名が登録されていれば表示
+        if (object.group) {
+          const groupLabel = document.createElement('div');
+          groupLabel.className = 'object-group';
+          groupLabel.style.fontSize = '10px';
+          groupLabel.style.color = '#555';
+          groupLabel.textContent = `フォルダ: ${object.group}`;
+          objectElement.appendChild(groupLabel);
+        }
+
         this.canvas.appendChild(objectElement);
       }
-      
-      // オブジェクトリストの更新
+
+      // オブジェクトリストの更新（グループ化＆折りたたみ対応）
       updateObjectList() {
         this.objectListContainer.innerHTML = '';
-        
+
         if (this.objects.length === 0) {
           const emptyMsg = document.createElement('div');
           emptyMsg.className = 'object-item';
@@ -681,94 +1096,82 @@
           this.objectListContainer.appendChild(emptyMsg);
           return;
         }
-        
+
+        // グループごとにオブジェクトを分類（未分類は「未分類」とする）
+        const groups = {};
         this.objects.forEach(object => {
-          const item = document.createElement('div');
-          item.className = 'object-item';
-          
-          const info = document.createElement('div');
-          info.className = 'object-info';
-          
-          const name = document.createElement('div');
-          name.className = 'object-name';
-          name.textContent = object.name;
-          
-          const meta = document.createElement('div');
-          meta.className = 'object-meta';
-          meta.textContent = `${object.width}×${object.height}cm · ${object.isFixed ? '固定' : '稼働'}`;
-          
-          info.appendChild(name);
-          info.appendChild(meta);
-          
-          const actions = document.createElement('div');
-          actions.className = 'object-actions';
-          
-          const selectBtn = document.createElement('button');
-          selectBtn.innerHTML = '<i class="fas fa-search"></i>';
-          selectBtn.title = '選択';
-          selectBtn.addEventListener('click', () => this.selectObjectById(object.id));
-          
-          const deleteBtn = document.createElement('button');
-          deleteBtn.innerHTML = '<i class="fas fa-trash"></i>';
-          deleteBtn.title = '削除';
-          deleteBtn.addEventListener('click', () => this.deleteObject(object.id));
-          
-          actions.appendChild(selectBtn);
-          actions.appendChild(deleteBtn);
-          
-          item.appendChild(info);
-          item.appendChild(actions);
-          
-          this.objectListContainer.appendChild(item);
+          const groupName = object.group || '未分類';
+          if (!groups[groupName]) {
+            groups[groupName] = [];
+          }
+          groups[groupName].push(object);
+        });
+
+        // グループごとに表示
+        Object.keys(groups).forEach(groupName => {
+          // グループヘッダー（クリックで折りたたみ/展開切替）
+          const groupHeader = document.createElement('div');
+          groupHeader.style.fontWeight = 'bold';
+          groupHeader.style.marginTop = '10px';
+          groupHeader.style.cursor = 'pointer';
+          groupHeader.textContent = `フォルダ: ${groupName} (${groups[groupName].length}件)`;
+          groupHeader.addEventListener('click', () => {
+            this.groupCollapseState[groupName] = !this.groupCollapseState[groupName];
+            this.updateObjectList();
+          });
+          this.objectListContainer.appendChild(groupHeader);
+
+          // グループが折りたたまれている場合は中身を非表示にする
+          if (this.groupCollapseState[groupName]) return;
+
+          groups[groupName].forEach(object => {
+            const item = document.createElement('div');
+            item.className = 'object-item';
+
+            const info = document.createElement('div');
+            info.className = 'object-info';
+
+            const name = document.createElement('div');
+            name.className = 'object-name';
+            name.textContent = object.name;
+
+            const meta = document.createElement('div');
+            meta.className = 'object-meta';
+            meta.textContent = `${object.width}×${object.height}cm · ${object.isFixed ? '固定' : '稼働'}`;
+
+            info.appendChild(name);
+            info.appendChild(meta);
+
+            const actions = document.createElement('div');
+            actions.className = 'object-actions';
+
+            const selectBtn = document.createElement('button');
+            selectBtn.innerHTML = '<i class="fas fa-search"></i>';
+            selectBtn.title = '選択';
+            selectBtn.addEventListener('click', () => this.selectObjectById(object.id));
+
+            const deleteBtn = document.createElement('button');
+            deleteBtn.innerHTML = '<i class="fas fa-trash"></i>';
+            deleteBtn.title = '削除';
+            deleteBtn.addEventListener('click', () => this.deleteObject(object.id));
+
+            actions.appendChild(selectBtn);
+            actions.appendChild(deleteBtn);
+
+            item.appendChild(info);
+            item.appendChild(actions);
+
+            this.objectListContainer.appendChild(item);
+          });
         });
       }
-      
-      // IDによるオブジェクト選択
-      selectObjectById(id) {
-        const objectElement = document.getElementById(`object-${id}`);
-        if (objectElement) {
-          // 既存の選択を解除
-          if (this.selectedObject) {
-            document.getElementById(`object-${this.selectedObject.id}`).classList.remove('selected');
-          }
-          
-                  
-          // 新たに選択
-          this.selectedObject = this.objects.find(obj => obj.id === id);
-          objectElement.classList.add('selected');
-          
-          // キャンバス内でスクロール位置を調整
-          const canvasContainer = document.querySelector('.canvas-container');
-          canvasContainer.scrollLeft = objectElement.offsetLeft - canvasContainer.offsetWidth / 2;
-          canvasContainer.scrollTop = objectElement.offsetTop - canvasContainer.offsetHeight / 2;
-        }
-      }
-      
-      // オブジェクト削除
-      deleteObject(id) {
-        const index = this.objects.findIndex(obj => obj.id === id);
-        if (index !== -1) {
-          // オブジェクトの削除
-          this.objects.splice(index, 1);
-          const objectElement = document.getElementById(`object-${id}`);
-          if (objectElement) {
-            objectElement.remove();
-          }
-          
-          // 選択状態の更新
-          if (this.selectedObject && this.selectedObject.id === id) {
-            this.selectedObject = null;
-          }
-          
-          this.updateObjectList();
-          this.showToast('オブジェクトを削除しました');
-        }
-      }
-      
+
       // フォームのリセット
       resetForm() {
         this.objectNameInput.value = '';
         this.isFixedInput.checked = false;
+        // 新たにグループ入力欄もリセット
+        this.objectGroupInput.value = '';
       }
       
       // キャンバス上のマウスダウンイベント
@@ -815,6 +1218,11 @@
           // データも更新
           this.selectedObject.x = newX;
           this.selectedObject.y = newY;
+          
+          // 移動中のオブジェクトに関連する距離測定を更新
+          if (this.showDistancesToggle.checked) {
+            this.updateMeasurementsForObject(this.selectedObject.id);
+          }
         }
       }
       
@@ -822,7 +1230,129 @@
       handleDocumentMouseUp() {
         if (this.isDragging) {
           this.isDragging = false;
+          // ドラッグ終了時に全体の測定を更新
+          if (this.showDistancesToggle.checked) {
+            this.updateAllMeasurements();
+          }
         }
+      }
+      
+      // すべてのオブジェクト間の距離測定を更新
+      updateAllMeasurements() {
+        if (!this.showDistancesToggle.checked) return;
+        
+        // 測定コンテナをクリア
+        this.clearAllMeasurements();
+        
+        // 2つ以上のオブジェクトがない場合は測定不要
+        if (this.objects.length < 2) return;
+        
+        // 全オブジェクトペアの組み合わせを作成して距離測定
+        for (let i = 0; i < this.objects.length; i++) {
+          for (let j = i + 1; j < this.objects.length; j++) {
+            this.measureDistanceBetweenObjects(this.objects[i], this.objects[j]);
+          }
+        }
+      }
+      
+      // 特定のオブジェクトに関連する距離測定を更新
+      updateMeasurementsForObject(objectId) {
+        if (!this.showDistancesToggle.checked) return;
+        
+        // オブジェクトに関連する測定をクリア
+        this.clearMeasurementsForObject(objectId);
+        
+        // 対象オブジェクトと他のオブジェクトの距離を測定
+        const targetObject = this.objects.find(obj => obj.id === objectId);
+        if (!targetObject) return;
+        
+        this.objects.forEach(obj => {
+          if (obj.id !== objectId) {
+            this.measureDistanceBetweenObjects(targetObject, obj);
+          }
+        });
+      }
+      
+      // 2つのオブジェクト間の距離を測定
+      measureDistanceBetweenObjects(obj1, obj2) {
+        // オブジェクトの中心座標を計算
+        const center1 = {
+          x: obj1.x + (obj1.width * this.pixelsPerCm) / 2,
+          y: obj1.y + (obj1.height * this.pixelsPerCm) / 2
+        };
+        
+        const center2 = {
+          x: obj2.x + (obj2.width * this.pixelsPerCm) / 2,
+          y: obj2.y + (obj2.height * this.pixelsPerCm) / 2
+        };
+        
+        // 2点間の距離を計算（ピクセル単位）
+        const dx = center2.x - center1.x;
+        const dy = center2.y - center1.y;
+        const distance = Math.sqrt(dx * dx + dy * dy);
+        
+        // 角度を計算
+        const angle = Math.atan2(dy, dx) * 180 / Math.PI;
+        
+        // 測定線を作成
+        const measurementLine = document.createElement('div');
+        measurementLine.className = 'measurement-line';
+        measurementLine.dataset.obj1 = obj1.id;
+        measurementLine.dataset.obj2 = obj2.id;
+        measurementLine.style.width = `${distance}px`;
+        measurementLine.style.left = `${center1.x}px`;
+        measurementLine.style.top = `${center1.y}px`;
+        measurementLine.style.transformOrigin = '0 0';
+        measurementLine.style.transform = `rotate(${angle}deg)`;
+        
+        this.measurementLines.push(measurementLine);
+        this.measurementsContainer.appendChild(measurementLine);
+        
+        // 測定ラベルを作成（cm換算）
+        const distanceCm = distance / this.pixelsPerCm;
+        const measurementLabel = document.createElement('div');
+        measurementLabel.className = 'measurement-label';
+        measurementLabel.dataset.obj1 = obj1.id;
+        measurementLabel.dataset.obj2 = obj2.id;
+        measurementLabel.textContent = `${distanceCm.toFixed(0)} cm`;
+        
+        // ラベルの位置を線の中央に
+        const labelX = center1.x + dx / 2;
+        const labelY = center1.y + dy / 2;
+        measurementLabel.style.left = `${labelX}px`;
+        measurementLabel.style.top = `${labelY}px`;
+        
+        this.measurementLabels.push(measurementLabel);
+        this.measurementsContainer.appendChild(measurementLabel);
+      }
+      
+      // 全ての測定をクリア
+      clearAllMeasurements() {
+        this.measurementsContainer.innerHTML = '';
+        this.measurementLines = [];
+        this.measurementLabels = [];
+      }
+      
+      // 特定のオブジェクトに関連する測定をクリア
+      clearMeasurementsForObject(objectId) {
+        // 対象オブジェクトに関連する線とラベルを削除
+        const relatedLines = this.measurementLines.filter(
+          line => line.dataset.obj1 === objectId || line.dataset.obj2 === objectId
+        );
+        
+        const relatedLabels = this.measurementLabels.filter(
+          label => label.dataset.obj1 === objectId || label.dataset.obj2 === objectId
+        );
+        
+        relatedLines.forEach(line => {
+          line.remove();
+          this.measurementLines = this.measurementLines.filter(l => l !== line);
+        });
+        
+        relatedLabels.forEach(label => {
+          label.remove();
+          this.measurementLabels = this.measurementLabels.filter(l => l !== label);
+        });
       }
       
       // ズームイン
@@ -851,6 +1381,13 @@
       applyZoom() {
         this.canvas.style.transform = `scale(${this.currentScale})`;
         this.canvas.style.transformOrigin = '0 0';
+        
+        // 目盛りも同じ比率でズーム
+        this.rulerX.style.transform = `scaleX(${this.currentScale})`;
+        this.rulerX.style.transformOrigin = '0 0';
+        
+        this.rulerY.style.transform = `scaleY(${this.currentScale})`;
+        this.rulerY.style.transformOrigin = '0 0';
       }
       
       // 保存モーダル表示
@@ -876,7 +1413,8 @@
           name,
           date: new Date().toLocaleString(),
           objects: [...this.objects],
-          scale: this.currentScale
+          scale: this.currentScale,
+          showDistances: this.showDistancesToggle.checked
         };
         
         // ローカルストレージから既存のレイアウトを取得
@@ -965,6 +1503,12 @@
         // 選択状態をリセット
         this.selectedObject = null;
         
+        // 距離表示設定の復元
+        if (layout.showDistances !== undefined) {
+          this.showDistancesToggle.checked = layout.showDistances;
+          this.measurementsContainer.style.display = layout.showDistances ? 'block' : 'none';
+        }
+        
         // ズームを復元
         if (layout.scale) {
           this.currentScale = layout.scale;
@@ -972,6 +1516,8 @@
         }
         
         this.updateObjectList();
+        this.updateObjectCount();
+        this.updateAllMeasurements();
         this.hideLoadModal();
         this.showToast(`レイアウト「${layout.name}」を読み込みました`, 'success');
       }
@@ -1006,7 +1552,9 @@
         // データのクリア
         this.objects = [];
         this.selectedObject = null;
+        this.clearAllMeasurements();
         this.updateObjectList();
+        this.updateObjectCount();
       }
       
       // トースト通知表示
