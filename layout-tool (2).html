@@ -15,6 +15,8 @@
       --grid-color: #e0e0e0;
       --grid-size: 20px;
       --scale-factor: 2; /* 2cm = 1px の変換率 */
+      --group-border-color: rgba(27, 108, 140, 0.6);
+      --group-bg-color: rgba(27, 108, 140, 0.1);
     }
     
     * {
@@ -348,6 +350,7 @@
       background-color: rgba(255, 255, 255, 0.7);
       box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.2);
       transition: box-shadow 0.2s;
+      z-index: 5;
     }
     
     .layout-object.fixed {
@@ -385,6 +388,27 @@
       font-size: 10px;
       color: #666;
       margin-top: 2px;
+    }
+
+    /* グループ表示 */
+    .layout-group {
+      position: absolute;
+      border: 2px dashed var(--group-border-color);
+      background-color: var(--group-bg-color);
+      z-index: 1;
+    }
+
+    .group-name {
+      position: absolute;
+      top: -20px;
+      left: 10px;
+      background-color: var(--primary-color);
+      color: white;
+      padding: 2px 8px;
+      border-radius: 4px;
+      font-size: 12px;
+      font-weight: bold;
+      white-space: nowrap;
     }
     
     /* 距離測定ライン */
@@ -442,6 +466,14 @@
     }
     
     .toolbar button {
+      margin-right: 10px;
+    }
+
+    .toolbar-group {
+      display: flex;
+      align-items: center;
+      border-right: 1px solid #ddd;
+      padding-right: 10px;
       margin-right: 10px;
     }
     
@@ -509,6 +541,15 @@
     
     input:checked + .slider:before {
       transform: translateX(20px);
+    }
+
+    /* 選択ボックス */
+    .selection-box {
+      position: absolute;
+      border: 1px dashed var(--primary-color);
+      background-color: rgba(27, 108, 140, 0.1);
+      z-index: 200;
+      pointer-events: none;
     }
     
     /* ズームコントロール */
@@ -581,6 +622,151 @@
       gap: 10px;
       margin-top: 20px;
     }
+
+    /* グループモーダル */
+    #groupModal .color-options {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-bottom: 15px;
+    }
+
+    #groupModal .color-option {
+      width: 30px;
+      height: 30px;
+      border-radius: 50%;
+      cursor: pointer;
+      border: 2px solid transparent;
+    }
+
+    #groupModal .color-option.selected {
+      border-color: black;
+    }
+
+    /* エクスポートモーダル */
+    .export-options {
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
+      margin-bottom: 20px;
+    }
+
+    .export-option {
+      display: flex;
+      align-items: center;
+      padding: 10px;
+      border: 1px solid #eee;
+      border-radius: 5px;
+      cursor: pointer;
+      transition: background-color 0.2s;
+    }
+
+    .export-option:hover {
+      background-color: #f5f5f5;
+    }
+
+    .export-option.selected {
+      background-color: var(--light-color);
+      border-color: var(--primary-color);
+    }
+
+    .export-option i {
+      font-size: 24px;
+      margin-right: 10px;
+      color: var(--primary-color);
+    }
+
+    .export-option-content {
+      flex: 1;
+    }
+
+    .export-option-title {
+      display: block;
+      font-weight: bold;
+      margin-bottom: 5px;
+    }
+
+    .export-option-desc {
+      display: block;
+      font-size: 12px;
+      color: #666;
+    }
+
+    .preview-container {
+      max-height: 300px;
+      overflow: auto;
+      border: 1px solid #ddd;
+      margin-top: 15px;
+      padding: 10px;
+      text-align: center;
+    }
+
+    /* 共有モーダル */
+    .share-options {
+      margin-bottom: 20px;
+    }
+
+    .share-url {
+      width: 100%;
+      padding: 10px;
+      margin: 10px 0;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      background-color: #f9f9f9;
+      font-size: 14px;
+    }
+
+    .share-buttons {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 15px;
+    }
+
+    .share-qrcode {
+      display: block;
+      margin: 0 auto;
+      max-width: 200px;
+      max-height: 200px;
+    }
+
+    .share-social {
+      display: flex;
+      justify-content: center;
+      gap: 15px;
+      margin-top: 15px;
+    }
+
+    .share-social button {
+      width: 40px;
+      height: 40px;
+      padding: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 50%;
+      font-size: 20px;
+    }
+
+    .share-mode {
+      display: flex;
+      gap: 15px;
+      margin: 15px 0;
+    }
+
+    .share-mode-option {
+      flex: 1;
+      padding: 10px;
+      text-align: center;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+
+    .share-mode-option.selected {
+      background-color: var(--light-color);
+      border-color: var(--primary-color);
+      font-weight: bold;
+    }
     
     /* トースト通知 */
     .toast-container {
@@ -638,6 +824,16 @@
   
   <!-- ツールバー -->
   <div class="toolbar">
+    <div class="toolbar-group">
+      <button id="selectModeBtn" class="mode-btn active"><i class="fas fa-mouse-pointer"></i> 選択</button>
+      <button id="multiSelectModeBtn" class="mode-btn"><i class="fas fa-object-group"></i> 複数選択</button>
+    </div>
+
+    <div class="toolbar-group">
+      <button id="createGroupBtn" disabled><i class="fas fa-object-group"></i> グループ化</button>
+      <button id="ungroupBtn" disabled><i class="fas fa-object-ungroup"></i> グループ解除</button>
+    </div>
+
     <div class="switch-container">
       <span class="switch-label">距離表示:</span>
       <label class="switch">
@@ -646,7 +842,7 @@
       </label>
     </div>
     <div class="toolbar-info">
-      オブジェクト数: <span id="objectCount">0</span>
+      オブジェクト数: <span id="objectCount">0</span> | グループ数: <span id="groupCount">0</span>
     </div>
   </div>
   
@@ -657,6 +853,7 @@
       <div class="tab-container">
         <div class="tab active" data-tab="object-form">オブジェクト追加</div>
         <div class="tab" data-tab="object-list">オブジェクト一覧</div>
+        <div class="tab" data-tab="group-list">グループ一覧</div>
       </div>
       
       <!-- オブジェクト追加フォーム -->
@@ -666,10 +863,6 @@
         <div class="form-group">
           <label for="objectName">名前</label>
           <input type="text" id="objectName" placeholder="例: 作業台1">
-        </div>
-        <div class="form-group">
-          <label for="objectGroup">フォルダ名 (オプション)</label>
-          <input type="text" id="objectGroup" placeholder="例: フォルダ1">
         </div>
         
         <div class="dimension-group">
@@ -704,6 +897,14 @@
         <h2>配置済みオブジェクト</h2>
         <div class="object-list" id="objectListContainer">
           <!-- オブジェクトリストはJSで動的に生成 -->
+        </div>
+      </div>
+
+      <!-- グループ一覧 -->
+      <div class="tab-content" id="group-list">
+        <h2>グループ一覧</h2>
+        <div class="object-list" id="groupListContainer">
+          <!-- グループリストはJSで動的に生成 -->
         </div>
       </div>
     </div>
@@ -772,32 +973,70 @@
       </div>
     </div>
   </div>
+
+  <!-- グループ作成モーダル -->
+  <div class="modal-overlay" id="groupModal">
+    <div class="modal">
+      <h2>グループを作成</h2>
+      <div class="form-group">
+        <label for="groupName">グループ名</label>
+        <input type="text" id="groupName" placeholder="例: 作業エリア1">
+      </div>
+      <div class="form-group">
+        <label>グループの色</label>
+        <div class="color-options" id="groupColorOptions">
+          <div class="color-option selected" style="background-color: #1B6C8C;" data-color="#1B6C8C"></div>
+          <div class="color-option" style="background-color: #BF8136;" data-color="#BF8136"></div>
+          <div class="color-option" style="background-color: #BF5656;" data-color="#BF5656"></div>
+          <div class="color-option" style="background-color: #5BBF56;" data-color="#5BBF56"></div>
+          <div class="color-option" style="background-color: #565BBF;" data-color="#565BBF"></div>
+          <div class="color-option" style="background-color: #B05BBF;" data-color="#B05BBF"></div>
+        </div>
+      </div>
+      <div class="modal-buttons">
+        <button id="cancelGroupBtn">キャンセル</button>
+        <button id="confirmGroupBtn">グループ作成</button>
+      </div>
+    </div>
+  </div>
   
   <!-- エクスポートモーダル -->
   <div class="modal-overlay" id="exportModal">
     <div class="modal">
       <h2>エクスポート</h2>
       <div class="export-options">
-        <div class="export-option" id="exportImage">
+        <div class="export-option" id="exportImage" data-type="image">
           <i class="fas fa-image"></i>
-          <span class="export-option-title">画像として保存</span>
-          <span class="export-option-desc">PNG形式で画像を保存</span>
+          <div class="export-option-content">
+            <span class="export-option-title">画像として保存</span>
+            <span class="export-option-desc">PNG形式で画像を保存</span>
+          </div>
         </div>
-        <div class="export-option" id="exportPDF">
+        <div class="export-option" id="exportPDF" data-type="pdf">
           <i class="fas fa-file-pdf"></i>
-          <span class="export-option-title">PDFとして保存</span>
-          <span class="export-option-desc">印刷用PDFで出力</span>
+          <div class="export-option-content">
+            <span class="export-option-title">PDFとして保存</span>
+            <span class="export-option-desc">印刷用PDFで出力</span>
+          </div>
         </div>
-        <div class="export-option" id="exportJSON">
+        <div class="export-option" id="exportJSON" data-type="json">
           <i class="fas fa-file-code"></i>
-          <span class="export-option-title">JSONデータ</span>
-          <span class="export-option-desc">編集可能なデータ形式</span>
+          <div class="export-option-content">
+            <span class="export-option-title">JSONデータ</span>
+            <span class="export-option-desc">編集可能なデータ形式</span>
+          </div>
         </div>
-        <div class="export-option" id="exportCSV">
+        <div class="export-option" id="exportCSV" data-type="csv">
           <i class="fas fa-file-csv"></i>
-          <span class="export-option-title">CSV出力</span>
-          <span class="export-option-desc">表計算ソフト用データ</span>
+          <div class="export-option-content">
+            <span class="export-option-title">CSV出力</span>
+            <span class="export-option-desc">表計算ソフト用データ</span>
+          </div>
         </div>
+      </div>
+      <div class="form-group">
+        <label for="exportFileName">ファイル名</label>
+        <input type="text" id="exportFileName" placeholder="例: レイアウト図面">
       </div>
       <div id="previewContainer" class="preview-container" style="display: none;">
         <!-- プレビュー画像はJSで動的に生成 -->
@@ -814,6 +1053,10 @@
     <div class="modal">
       <h2>レイアウトを共有</h2>
       <div class="share-options">
+        <div class="share-mode">
+          <div class="share-mode-option selected" data-mode="view">閲覧専用</div>
+          <div class="share-mode-option" data-mode="edit">編集可能</div>
+        </div>
         <p>以下のリンクを共有することで、このレイアウトを他の人と共有できます：</p>
         <input type="text" id="shareURL" class="share-url" readonly>
         <div class="share-buttons">
@@ -822,6 +1065,12 @@
         </div>
         <div id="qrCodeContainer" style="display: none;">
           <img id="qrCodeImage" class="share-qrcode">
+        </div>
+        <div class="share-social">
+          <button class="share-twitter" style="background-color: #1DA1F2;"><i class="fab fa-twitter"></i></button>
+          <button class="share-facebook" style="background-color: #4267B2;"><i class="fab fa-facebook-f"></i></button>
+          <button class="share-line" style="background-color: #06C755;"><i class="fab fa-line"></i></button>
+          <button class="share-mail" style="background-color: #EA4335;"><i class="fas fa-envelope"></i></button>
         </div>
       </div>
       <div class="modal-buttons">
@@ -840,7 +1089,7 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcode/1.5.3/qrcode.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/lz-string/1.4.4/lz-string.min.js"></script>
-  
+
   <script>
     // アプリケーションの主要クラス
     class LayoutApp {
@@ -848,8 +1097,10 @@
         // DOM要素
         this.canvas = document.getElementById('layoutCanvas');
         this.objectListContainer = document.getElementById('objectListContainer');
+        this.groupListContainer = document.getElementById('groupListContainer');
         this.saveModal = document.getElementById('saveModal');
         this.loadModal = document.getElementById('loadModal');
+        this.groupModal = document.getElementById('groupModal');
         this.exportModal = document.getElementById('exportModal');
         this.shareModal = document.getElementById('shareModal');
         this.toastContainer = document.getElementById('toastContainer');
@@ -857,10 +1108,12 @@
         this.rulerY = document.getElementById('rulerY');
         this.measurementsContainer = document.getElementById('measurementsContainer');
         this.objectCountDisplay = document.getElementById('objectCount');
+        this.groupCountDisplay = document.getElementById('groupCount');
         this.previewContainer = document.getElementById('previewContainer');
         this.shareURLInput = document.getElementById('shareURL');
         this.qrCodeContainer = document.getElementById('qrCodeContainer');
         this.qrCodeImage = document.getElementById('qrCodeImage');
+        this.exportFileName = document.getElementById('exportFileName');
         
         // フォーム要素
         this.objectNameInput = document.getElementById('objectName');
@@ -870,13 +1123,26 @@
         this.isFixedInput = document.getElementById('isFixed');
         this.colorPreview = document.getElementById('colorPreview');
         this.showDistancesToggle = document.getElementById('showDistancesToggle');
-        // 新たにグループ入力欄を取得
-        this.objectGroupInput = document.getElementById('objectGroup');
+        this.groupNameInput = document.getElementById('groupName');
+        this.groupColorOptions = document.getElementById('groupColorOptions');
+        
+        // ツールバーボタン
+        this.selectModeBtn = document.getElementById('selectModeBtn');
+        this.multiSelectModeBtn = document.getElementById('multiSelectModeBtn');
+        this.createGroupBtn = document.getElementById('createGroupBtn');
+        this.ungroupBtn = document.getElementById('ungroupBtn');
         
         // 状態管理
         this.objects = [];
+        this.groups = [];
         this.selectedObject = null;
+        this.selectedObjects = [];
+        this.selectedGroup = null;
         this.isDragging = false;
+        this.isMultiSelecting = false;
+        this.startMultiSelectPos = { x: 0, y: 0 };
+        this.currentMultiSelectPos = { x: 0, y: 0 };
+        this.selectionBox = null;
         this.dragOffsetX = 0;
         this.dragOffsetY = 0;
         this.currentScale = 1;
@@ -885,14 +1151,81 @@
         this.pixelsPerCm = this.gridSize / this.cmPerGrid; // 1cmあたりのピクセル数
         this.measurementLines = [];
         this.measurementLabels = [];
-        // 新規追加: 各グループの折りたたみ状態を管理（true: 折りたたみ）
-        this.groupCollapseState = {};
+        this.selectedGroupColor = '#1B6C8C';
+        this.currentMode = 'select';
+        this.exportType = null;
+        this.shareMode = 'view';
         
         // 初期化
         this.initEventListeners();
         this.updateColorPreview();
         this.initTabs();
         this.initRulers();
+        this.initSelectionBox();
+        this.loadFromURLIfNeeded();
+      }
+      
+      // URLからレイアウトを読み込む（共有機能）
+      loadFromURLIfNeeded() {
+        const params = new URLSearchParams(window.location.search);
+        const layoutData = params.get('data');
+        const mode = params.get('mode') || 'view';
+        
+        if (layoutData) {
+          try {
+            // データを復号化して読み込む
+            const decompressedData = LZString.decompressFromEncodedURIComponent(layoutData);
+            const parsedData = JSON.parse(decompressedData);
+            
+            // オブジェクトとグループを復元
+            this.clearLayoutWithoutConfirmation();
+            
+            // グループを先に復元
+            if (parsedData.groups) {
+              this.groups = parsedData.groups;
+              this.groups.forEach(group => this.renderGroup(group));
+            }
+            
+            // オブジェクトを復元
+            if (parsedData.objects) {
+              this.objects = parsedData.objects;
+              this.objects.forEach(object => this.renderObject(object));
+            }
+            
+            // 表示を更新
+            this.updateObjectList();
+            this.updateGroupList();
+            this.updateCounts();
+            this.updateAllMeasurements();
+            
+            // 閲覧専用モードの場合
+            if (mode === 'view') {
+              this.disableEditing();
+              this.showToast('閲覧専用モードでレイアウトを表示しています', 'info');
+            } else {
+              this.showToast('共有されたレイアウトを読み込みました', 'success');
+            }
+          } catch (error) {
+            console.error('共有データの読み込みに失敗しました', error);
+            this.showToast('共有データの読み込みに失敗しました', 'error');
+          }
+        }
+      }
+      
+      // 編集機能を無効化（閲覧専用モード用）
+      disableEditing() {
+        document.querySelectorAll('.toolbar button, .sidebar button').forEach(btn => {
+          btn.disabled = true;
+        });
+        this.canvas.classList.add('view-only');
+      }
+      
+      // 選択ボックスの初期化
+      initSelectionBox() {
+        this.selectionBox = document.createElement('div');
+        this.selectionBox.className = 'selection-box';
+        this.selectionBox.style.display = 'none';
+        this.canvas.appendChild(this.selectionBox);
       }
       
       // 目盛りの初期化
@@ -961,6 +1294,14 @@
         document.addEventListener('mousemove', (e) => this.handleDocumentMouseMove(e));
         document.addEventListener('mouseup', () => this.handleDocumentMouseUp());
         
+        // モード切替ボタン
+        this.selectModeBtn.addEventListener('click', () => this.setMode('select'));
+        this.multiSelectModeBtn.addEventListener('click', () => this.setMode('multiSelect'));
+        
+        // グループ操作ボタン
+        this.createGroupBtn.addEventListener('click', () => this.showGroupModal());
+        this.ungroupBtn.addEventListener('click', () => this.ungroupSelected());
+        
         // ズームコントロール
         document.getElementById('zoomInBtn').addEventListener('click', () => this.zoomIn());
         document.getElementById('zoomOutBtn').addEventListener('click', () => this.zoomOut());
@@ -979,17 +1320,82 @@
         // 保存/読込ボタン
         document.getElementById('saveBtn').addEventListener('click', () => this.showSaveModal());
         document.getElementById('loadBtn').addEventListener('click', () => this.showLoadModal());
+        document.getElementById('exportBtn').addEventListener('click', () => this.showExportModal());
+        document.getElementById('shareBtn').addEventListener('click', () => this.showShareModal());
         document.getElementById('clearBtn').addEventListener('click', () => this.clearLayout());
+        
+        // グループモーダルのイベント
+        document.querySelectorAll('#groupColorOptions .color-option').forEach(option => {
+          option.addEventListener('click', () => {
+            document.querySelectorAll('#groupColorOptions .color-option').forEach(opt => opt.classList.remove('selected'));
+            option.classList.add('selected');
+            this.selectedGroupColor = option.dataset.color;
+          });
+        });
         
         // モーダルボタン
         document.getElementById('cancelSaveBtn').addEventListener('click', () => this.hideSaveModal());
         document.getElementById('confirmSaveBtn').addEventListener('click', () => this.saveLayout());
         document.getElementById('cancelLoadBtn').addEventListener('click', () => this.hideLoadModal());
+        document.getElementById('cancelGroupBtn').addEventListener('click', () => this.hideGroupModal());
+        document.getElementById('confirmGroupBtn').addEventListener('click', () => this.createGroup());
+        document.getElementById('cancelExportBtn').addEventListener('click', () => this.hideExportModal());
+        document.getElementById('downloadExportBtn').addEventListener('click', () => this.downloadExport());
+        document.getElementById('cancelShareBtn').addEventListener('click', () => this.hideShareModal());
+        
+        // エクスポートオプションの選択
+        document.querySelectorAll('.export-option').forEach(option => {
+          option.addEventListener('click', () => {
+            document.querySelectorAll('.export-option').forEach(opt => opt.classList.remove('selected'));
+            option.classList.add('selected');
+            this.exportType = option.dataset.type;
+            this.generateExportPreview();
+          });
+        });
+        
+        // 共有モードの選択
+        document.querySelectorAll('.share-mode-option').forEach(option => {
+          option.addEventListener('click', () => {
+            document.querySelectorAll('.share-mode-option').forEach(opt => opt.classList.remove('selected'));
+            option.classList.add('selected');
+            this.shareMode = option.dataset.mode;
+            this.generateShareURL();
+          });
+        });
+        
+        // 共有機能ボタン
+        document.getElementById('copyShareURLBtn').addEventListener('click', () => this.copyShareURL());
+        document.getElementById('generateQRBtn').addEventListener('click', () => this.generateQRCode());
+        
+        // SNS共有ボタン
+        document.querySelector('.share-twitter').addEventListener('click', () => this.shareToSNS('twitter'));
+        document.querySelector('.share-facebook').addEventListener('click', () => this.shareToSNS('facebook'));
+        document.querySelector('.share-line').addEventListener('click', () => this.shareToSNS('line'));
+        document.querySelector('.share-mail').addEventListener('click', () => this.shareToSNS('mail'));
         
         // ウィンドウリサイズ時に目盛りを更新
         window.addEventListener('resize', () => {
           this.initRulers();
         });
+      }
+      
+      // 操作モードの設定
+      setMode(mode) {
+        this.currentMode = mode;
+        
+        // ボタンのアクティブ状態を更新
+        document.querySelectorAll('.mode-btn').forEach(btn => btn.classList.remove('active'));
+        
+        if (mode === 'select') {
+          this.selectModeBtn.classList.add('active');
+          this.clearMultiSelection();
+        } else if (mode === 'multiSelect') {
+          this.multiSelectModeBtn.classList.add('active');
+          if (this.selectedObject) {
+            document.getElementById(`object-${this.selectedObject.id}`).classList.remove('selected');
+            this.selectedObject = null;
+          }
+        }
       }
       
       // タブ切り替え初期化
@@ -1023,8 +1429,7 @@
         const height = parseInt(this.objectHeightInput.value) || 100;
         const color = this.objectColorInput.value;
         const isFixed = this.isFixedInput.checked;
-        const group = this.objectGroupInput.value.trim(); // 追加
-
+        
         // オブジェクト作成
         const object = {
           id: Date.now().toString(),
@@ -1035,21 +1440,179 @@
           isFixed,
           x: 100,
           y: 100,
-          group // 追加
+          groupId: null // グループID（初期はnull）
         };
-
+        
         this.objects.push(object);
         this.renderObject(object);
         this.updateObjectList();
-        this.updateObjectCount();
+        this.updateCounts();
         this.resetForm();
-
+        
         // 距離測定を更新
         this.updateAllMeasurements();
-
+        
         this.showToast('オブジェクトを追加しました', 'success');
       }
-
+      
+      // グループモーダルを表示
+      showGroupModal() {
+        if (this.selectedObjects.length < 2) {
+          this.showToast('2つ以上のオブジェクトを選択してください', 'error');
+          return;
+        }
+        
+        this.groupNameInput.value = `グループ${this.groups.length + 1}`;
+        this.groupModal.style.display = 'flex';
+      }
+      
+      // グループモーダルを非表示
+      hideGroupModal() {
+        this.groupModal.style.display = 'none';
+      }
+      
+      // グループ作成
+      createGroup() {
+        if (this.selectedObjects.length < 2) {
+          this.showToast('2つ以上のオブジェクトを選択してください', 'error');
+          return;
+        }
+        
+        const name = this.groupNameInput.value.trim() || `グループ${this.groups.length + 1}`;
+        const color = this.selectedGroupColor;
+        
+        // 選択されたオブジェクトの範囲を計算
+        let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+        
+        this.selectedObjects.forEach(object => {
+          const objMinX = object.x;
+          const objMinY = object.y;
+          const objMaxX = object.x + (object.width * this.pixelsPerCm);
+          const objMaxY = object.y + (object.height * this.pixelsPerCm);
+          
+          minX = Math.min(minX, objMinX);
+          minY = Math.min(minY, objMinY);
+          maxX = Math.max(maxX, objMaxX);
+          maxY = Math.max(maxY, objMaxY);
+        });
+        
+        // グループオブジェクト作成
+        const group = {
+          id: Date.now().toString(),
+          name,
+          color,
+          x: minX,
+          y: minY,
+          width: (maxX - minX) / this.pixelsPerCm,
+          height: (maxY - minY) / this.pixelsPerCm,
+          objectIds: this.selectedObjects.map(obj => obj.id)
+        };
+        
+        // オブジェクトにグループIDを設定
+        this.selectedObjects.forEach(object => {
+          const index = this.objects.findIndex(obj => obj.id === object.id);
+          if (index !== -1) {
+            this.objects[index].groupId = group.id;
+          }
+        });
+        
+        this.groups.push(group);
+        this.renderGroup(group);
+        
+        this.updateObjectList();
+        this.updateGroupList();
+        this.updateCounts();
+        this.clearMultiSelection();
+        this.hideGroupModal();
+        
+        this.showToast(`グループ「${name}」を作成しました`, 'success');
+      }
+      
+      // グループ表示
+      renderGroup(group) {
+        const groupElement = document.createElement('div');
+        groupElement.id = `group-${group.id}`;
+        groupElement.className = 'layout-group';
+        groupElement.style.left = `${group.x}px`;
+        groupElement.style.top = `${group.y}px`;
+        groupElement.style.width = `${group.width * this.pixelsPerCm}px`;
+        groupElement.style.height = `${group.height * this.pixelsPerCm}px`;
+        groupElement.style.borderColor = group.color;
+        groupElement.style.backgroundColor = `${group.color}20`; // 色に透明度を追加
+        
+        const nameLabel = document.createElement('div');
+        nameLabel.className = 'group-name';
+        nameLabel.textContent = group.name;
+        nameLabel.style.backgroundColor = group.color;
+        groupElement.appendChild(nameLabel);
+        
+        // グループをクリックしたときの処理
+        groupElement.addEventListener('click', (e) => {
+          if (this.currentMode === 'select' && !this.isDragging) {
+            e.stopPropagation();
+            this.selectGroup(group.id);
+          }
+        });
+        
+        this.canvas.insertBefore(groupElement, this.canvas.firstChild);
+      }
+      
+      // グループ選択
+      selectGroup(groupId) {
+        if (this.selectedGroup) {
+          document.getElementById(`group-${this.selectedGroup.id}`).classList.remove('selected');
+        }
+        
+        if (this.selectedObject) {
+          document.getElementById(`object-${this.selectedObject.id}`).classList.remove('selected');
+          this.selectedObject = null;
+        }
+        
+        this.clearMultiSelection();
+        
+        const group = this.groups.find(g => g.id === groupId);
+        if (group) {
+          this.selectedGroup = group;
+          document.getElementById(`group-${groupId}`).classList.add('selected');
+          this.ungroupBtn.disabled = false;
+        }
+      }
+      
+      // グループ解除
+      ungroupSelected() {
+        if (!this.selectedGroup) return;
+        
+        const groupId = this.selectedGroup.id;
+        
+        // グループに属するオブジェクトのグループIDをnullに設定
+        this.objects.forEach(object => {
+          if (object.groupId === groupId) {
+            object.groupId = null;
+          }
+        });
+        
+        // グループを削除
+        const groupIndex = this.groups.findIndex(g => g.id === groupId);
+        if (groupIndex !== -1) {
+          this.groups.splice(groupIndex, 1);
+        }
+        
+        // グループ要素を削除
+        const groupElement = document.getElementById(`group-${groupId}`);
+        if (groupElement) {
+          groupElement.remove();
+        }
+        
+        this.selectedGroup = null;
+        this.ungroupBtn.disabled = true;
+        
+        this.updateObjectList();
+        this.updateGroupList();
+        this.updateCounts();
+        
+        this.showToast('グループを解除しました', 'success');
+      }
+      
       // オブジェクトのDOM要素作成
       renderObject(object) {
         const objectElement = document.createElement('div');
@@ -1060,35 +1623,25 @@
         objectElement.style.backgroundColor = object.color;
         objectElement.style.left = `${object.x}px`;
         objectElement.style.top = `${object.y}px`;
-
+        
         // オブジェクトの内容
         const label = document.createElement('div');
         label.className = 'object-label';
         label.textContent = object.name;
         objectElement.appendChild(label);
-
+        
         const dimension = document.createElement('div');
         dimension.className = 'object-dimension';
         dimension.textContent = `${object.width}×${object.height}cm`;
         objectElement.appendChild(dimension);
-
-        // フォルダ名が登録されていれば表示
-        if (object.group) {
-          const groupLabel = document.createElement('div');
-          groupLabel.className = 'object-group';
-          groupLabel.style.fontSize = '10px';
-          groupLabel.style.color = '#555';
-          groupLabel.textContent = `フォルダ: ${object.group}`;
-          objectElement.appendChild(groupLabel);
-        }
-
+        
         this.canvas.appendChild(objectElement);
       }
-
-      // オブジェクトリストの更新（グループ化＆折りたたみ対応）
+      
+      // オブジェクトリストの更新
       updateObjectList() {
         this.objectListContainer.innerHTML = '';
-
+        
         if (this.objects.length === 0) {
           const emptyMsg = document.createElement('div');
           emptyMsg.className = 'object-item';
@@ -1096,116 +1649,375 @@
           this.objectListContainer.appendChild(emptyMsg);
           return;
         }
-
-        // グループごとにオブジェクトを分類（未分類は「未分類」とする）
-        const groups = {};
-        this.objects.forEach(object => {
-          const groupName = object.group || '未分類';
-          if (!groups[groupName]) {
-            groups[groupName] = [];
-          }
-          groups[groupName].push(object);
+        
+        // グループなしのオブジェクトを表示
+        const ungroupedObjects = this.objects.filter(obj => !obj.groupId);
+        
+        ungroupedObjects.forEach(object => {
+          const item = this.createObjectListItem(object);
+          this.objectListContainer.appendChild(item);
         });
-
-        // グループごとに表示
-        Object.keys(groups).forEach(groupName => {
-          // グループヘッダー（クリックで折りたたみ/展開切替）
+        
+        // グループごとにオブジェクトを表示
+        this.groups.forEach(group => {
           const groupHeader = document.createElement('div');
+          groupHeader.className = 'object-item';
           groupHeader.style.fontWeight = 'bold';
-          groupHeader.style.marginTop = '10px';
-          groupHeader.style.cursor = 'pointer';
-          groupHeader.textContent = `フォルダ: ${groupName} (${groups[groupName].length}件)`;
-          groupHeader.addEventListener('click', () => {
-            this.groupCollapseState[groupName] = !this.groupCollapseState[groupName];
-            this.updateObjectList();
-          });
+          groupHeader.style.backgroundColor = `${group.color}20`;
+          groupHeader.innerHTML = `<i class="fas fa-object-group"></i> ${group.name} (${group.objectIds.length}件)`;
           this.objectListContainer.appendChild(groupHeader);
-
-          // グループが折りたたまれている場合は中身を非表示にする
-          if (this.groupCollapseState[groupName]) return;
-
-          groups[groupName].forEach(object => {
-            const item = document.createElement('div');
-            item.className = 'object-item';
-
-            const info = document.createElement('div');
-            info.className = 'object-info';
-
-            const name = document.createElement('div');
-            name.className = 'object-name';
-            name.textContent = object.name;
-
-            const meta = document.createElement('div');
-            meta.className = 'object-meta';
-            meta.textContent = `${object.width}×${object.height}cm · ${object.isFixed ? '固定' : '稼働'}`;
-
-            info.appendChild(name);
-            info.appendChild(meta);
-
-            const actions = document.createElement('div');
-            actions.className = 'object-actions';
-
-            const selectBtn = document.createElement('button');
-            selectBtn.innerHTML = '<i class="fas fa-search"></i>';
-            selectBtn.title = '選択';
-            selectBtn.addEventListener('click', () => this.selectObjectById(object.id));
-
-            const deleteBtn = document.createElement('button');
-            deleteBtn.innerHTML = '<i class="fas fa-trash"></i>';
-            deleteBtn.title = '削除';
-            deleteBtn.addEventListener('click', () => this.deleteObject(object.id));
-
-            actions.appendChild(selectBtn);
-            actions.appendChild(deleteBtn);
-
-            item.appendChild(info);
-            item.appendChild(actions);
-
-            this.objectListContainer.appendChild(item);
-          });
+          
+          // グループ内のオブジェクトを表示
+          this.objects
+            .filter(obj => obj.groupId === group.id)
+            .forEach(object => {
+              const item = this.createObjectListItem(object);
+              item.style.paddingLeft = '20px';
+              this.objectListContainer.appendChild(item);
+            });
         });
       }
-
+      
+      // グループリストの更新
+      updateGroupList() {
+        this.groupListContainer.innerHTML = '';
+        
+        if (this.groups.length === 0) {
+          const emptyMsg = document.createElement('div');
+          emptyMsg.className = 'object-item';
+          emptyMsg.textContent = 'グループがありません';
+          this.groupListContainer.appendChild(emptyMsg);
+          return;
+        }
+        
+        this.groups.forEach(group => {
+          const item = document.createElement('div');
+          item.className = 'object-item';
+          
+          const info = document.createElement('div');
+          info.className = 'object-info';
+          
+          const name = document.createElement('div');
+          name.className = 'object-name';
+          name.innerHTML = `<i class="fas fa-object-group" style="color: ${group.color}"></i> ${group.name}`;
+          
+          const meta = document.createElement('div');
+          meta.className = 'object-meta';
+          meta.textContent = `オブジェクト数: ${group.objectIds.length}`;
+          
+          info.appendChild(name);
+          info.appendChild(meta);
+          
+          const actions = document.createElement('div');
+          actions.className = 'object-actions';
+          
+          const selectBtn = document.createElement('button');
+          selectBtn.innerHTML = '<i class="fas fa-search"></i>';
+          selectBtn.title = '選択';
+          selectBtn.addEventListener('click', () => this.selectGroup(group.id));
+          
+          const deleteBtn = document.createElement('button');
+          deleteBtn.innerHTML = '<i class="fas fa-trash"></i>';
+          deleteBtn.title = '削除';
+          deleteBtn.addEventListener('click', () => this.deleteGroup(group.id));
+          
+          actions.appendChild(selectBtn);
+          actions.appendChild(deleteBtn);
+          
+          item.appendChild(info);
+          item.appendChild(actions);
+          
+          this.groupListContainer.appendChild(item);
+        });
+      }
+      
+      // オブジェクトリストアイテムの作成
+      createObjectListItem(object) {
+        const item = document.createElement('div');
+        item.className = 'object-item';
+        
+        const info = document.createElement('div');
+        info.className = 'object-info';
+        
+        const name = document.createElement('div');
+        name.className = 'object-name';
+        name.textContent = object.name;
+        
+        const meta = document.createElement('div');
+        meta.className = 'object-meta';
+        meta.textContent = `${object.width}×${object.height}cm · ${object.isFixed ? '固定' : '稼働'}`;
+        
+        info.appendChild(name);
+        info.appendChild(meta);
+        
+        const actions = document.createElement('div');
+        actions.className = 'object-actions';
+        
+        const selectBtn = document.createElement('button');
+        selectBtn.innerHTML = '<i class="fas fa-search"></i>';
+        selectBtn.title = '選択';
+        selectBtn.addEventListener('click', () => this.selectObjectById(object.id));
+        
+        const deleteBtn = document.createElement('button');
+        deleteBtn.innerHTML = '<i class="fas fa-trash"></i>';
+        deleteBtn.title = '削除';
+        deleteBtn.addEventListener('click', () => this.deleteObject(object.id));
+        
+        actions.appendChild(selectBtn);
+        actions.appendChild(deleteBtn);
+        
+        item.appendChild(info);
+        item.appendChild(actions);
+        
+        return item;
+      }
+      
+      // IDによるオブジェクト選択
+      selectObjectById(id) {
+        // 現在の選択をクリア
+        if (this.selectedObject) {
+          document.getElementById(`object-${this.selectedObject.id}`).classList.remove('selected');
+        }
+        
+        if (this.selectedGroup) {
+          document.getElementById(`group-${this.selectedGroup.id}`).classList.remove('selected');
+          this.selectedGroup = null;
+          this.ungroupBtn.disabled = true;
+        }
+        
+        this.clearMultiSelection();
+        
+        // 新たに選択
+        const object = this.objects.find(obj => obj.id === id);
+        if (object) {
+          this.selectedObject = object;
+          document.getElementById(`object-${id}`).classList.add('selected');
+          
+          // オブジェクトが表示範囲内に入るようにスクロール
+          const objectElement = document.getElementById(`object-${id}`);
+          objectElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+      }
+      
+      // オブジェクト削除
+      deleteObject(id) {
+        // グループからオブジェクトを削除
+        const object = this.objects.find(obj => obj.id === id);
+        if (object && object.groupId) {
+          const groupIndex = this.groups.findIndex(g => g.id === object.groupId);
+          if (groupIndex !== -1) {
+            // グループからオブジェクトIDを削除
+            this.groups[groupIndex].objectIds = this.groups[groupIndex].objectIds.filter(objId => objId !== id);
+            
+            // グループが空になった場合はグループも削除
+            if (this.groups[groupIndex].objectIds.length === 0) {
+              document.getElementById(`group-${this.groups[groupIndex].id}`).remove();
+              this.groups.splice(groupIndex, 1);
+            } else {
+              // グループのサイズを再計算
+              this.recalculateGroupBounds(this.groups[groupIndex]);
+            }
+          }
+        }
+        
+        // オブジェクトを削除
+        const index = this.objects.findIndex(obj => obj.id === id);
+        if (index !== -1) {
+          this.objects.splice(index, 1);
+        }
+        
+        // DOM要素を削除
+        const objectElement = document.getElementById(`object-${id}`);
+        if (objectElement) {
+          objectElement.remove();
+        }
+        
+        // 選択状態の更新
+        if (this.selectedObject && this.selectedObject.id === id) {
+          this.selectedObject = null;
+        }
+        
+        this.selectedObjects = this.selectedObjects.filter(obj => obj.id !== id);
+        this.updateCreateGroupButtonState();
+        
+        this.updateObjectList();
+        this.updateGroupList();
+        this.updateCounts();
+        this.updateAllMeasurements();
+        
+        this.showToast('オブジェクトを削除しました');
+      }
+      
+      // グループ削除
+      deleteGroup(groupId) {
+        // グループに属するオブジェクトのグループIDを解除
+        this.objects.forEach(object => {
+          if (object.groupId === groupId) {
+            object.groupId = null;
+          }
+        });
+        
+        // グループを削除
+        const groupIndex = this.groups.findIndex(g => g.id === groupId);
+        if (groupIndex !== -1) {
+          this.groups.splice(groupIndex, 1);
+        }
+        
+        // DOM要素を削除
+        const groupElement = document.getElementById(`group-${groupId}`);
+        if (groupElement) {
+          groupElement.remove();
+        }
+        
+        // 選択状態の更新
+        if (this.selectedGroup && this.selectedGroup.id === groupId) {
+          this.selectedGroup = null;
+          this.ungroupBtn.disabled = true;
+        }
+        
+        this.updateObjectList();
+        this.updateGroupList();
+        this.updateCounts();
+        
+        this.showToast('グループを削除しました');
+      }
+      
+      // グループの範囲を再計算
+      recalculateGroupBounds(group) {
+        const groupObjects = this.objects.filter(obj => obj.groupId === group.id);
+        if (groupObjects.length === 0) return;
+        
+        let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+        
+        groupObjects.forEach(object => {
+          const objMinX = object.x;
+          const objMinY = object.y;
+          const objMaxX = object.x + (object.width * this.pixelsPerCm);
+          const objMaxY = object.y + (object.height * this.pixelsPerCm);
+          
+          minX = Math.min(minX, objMinX);
+          minY = Math.min(minY, objMinY);
+          maxX = Math.max(maxX, objMaxX);
+          maxY = Math.max(maxY, objMaxY);
+        });
+        
+        // グループの位置とサイズを更新
+        group.x = minX;
+        group.y = minY;
+        group.width = (maxX - minX) / this.pixelsPerCm;
+        group.height = (maxY - minY) / this.pixelsPerCm;
+        
+        // DOM要素を更新
+        const groupElement = document.getElementById(`group-${group.id}`);
+        if (groupElement) {
+          groupElement.style.left = `${group.x}px`;
+          groupElement.style.top = `${group.y}px`;
+          groupElement.style.width = `${group.width * this.pixelsPerCm}px`;
+          groupElement.style.height = `${group.height * this.pixelsPerCm}px`;
+        }
+      }
+      
+      // オブジェクト数表示の更新
+      updateCounts() {
+        this.objectCountDisplay.textContent = this.objects.length;
+        this.groupCountDisplay.textContent = this.groups.length;
+      }
+      
       // フォームのリセット
       resetForm() {
         this.objectNameInput.value = '';
         this.isFixedInput.checked = false;
-        // 新たにグループ入力欄もリセット
-        this.objectGroupInput.value = '';
       }
       
       // キャンバス上のマウスダウンイベント
       handleCanvasMouseDown(e) {
-        if (e.target.closest('.layout-object')) {
-          const objectElement = e.target.closest('.layout-object');
+        if (this.currentMode === 'select') {
+          this.handleSelectModeMouseDown(e);
+        } else if (this.currentMode === 'multiSelect') {
+          this.handleMultiSelectModeMouseDown(e);
+        }
+      }
+      
+      // 選択モードでのマウスダウン処理
+      handleSelectModeMouseDown(e) {
+        const target = e.target;
+        
+        // オブジェクトをクリックした場合
+        if (target.closest('.layout-object')) {
+          const objectElement = target.closest('.layout-object');
           const id = objectElement.id.replace('object-', '');
           const object = this.objects.find(obj => obj.id === id);
           
-          if (object && !object.isFixed) {
-            this.isDragging = true;
-            this.dragOffsetX = e.clientX - objectElement.offsetLeft;
-            this.dragOffsetY = e.clientY - objectElement.offsetTop;
+          if (object) {
+            this.isDragging = !object.isFixed; // 固定オブジェクトは動かせない
+            
+            if (this.isDragging) {
+              this.dragOffsetX = e.clientX - objectElement.offsetLeft;
+              this.dragOffsetY = e.clientY - objectElement.offsetTop;
+            }
             
             // 既存の選択を解除
             if (this.selectedObject) {
               document.getElementById(`object-${this.selectedObject.id}`).classList.remove('selected');
             }
             
+            if (this.selectedGroup) {
+              document.getElementById(`group-${this.selectedGroup.id}`).classList.remove('selected');
+              this.selectedGroup = null;
+              this.ungroupBtn.disabled = true;
+            }
+            
             // 新たに選択
             this.selectedObject = object;
             objectElement.classList.add('selected');
           }
-        } else {
-          // キャンバス上の空白部分をクリックした場合は選択解除
+        } else if (!target.closest('.layout-group')) {
+          // キャンバスの空白部分または既にグループがハンドリングした場合
           if (this.selectedObject) {
             document.getElementById(`object-${this.selectedObject.id}`).classList.remove('selected');
             this.selectedObject = null;
           }
+          
+          if (this.selectedGroup) {
+            document.getElementById(`group-${this.selectedGroup.id}`).classList.remove('selected');
+            this.selectedGroup = null;
+            this.ungroupBtn.disabled = true;
+          }
         }
+      }
+      
+      // 複数選択モードでのマウスダウン処理
+      handleMultiSelectModeMouseDown(e) {
+        // 選択ボックスの開始位置を設定
+        const rect = this.canvas.getBoundingClientRect();
+        this.startMultiSelectPos = {
+          x: e.clientX - rect.left,
+          y: e.clientY - rect.top
+        };
+        
+        this.currentMultiSelectPos = { ...this.startMultiSelectPos };
+        
+        // 選択ボックスを表示
+        this.selectionBox.style.display = 'block';
+        this.selectionBox.style.left = `${this.startMultiSelectPos.x}px`;
+        this.selectionBox.style.top = `${this.startMultiSelectPos.y}px`;
+        this.selectionBox.style.width = '0px';
+        this.selectionBox.style.height = '0px';
+        
+        this.isDragging = true;
       }
       
       // ドキュメント全体のマウス移動イベント
       handleDocumentMouseMove(e) {
+        if (this.currentMode === 'select') {
+          this.handleSelectModeMouseMove(e);
+        } else if (this.currentMode === 'multiSelect' && this.isDragging) {
+          this.handleMultiSelectModeMouseMove(e);
+        }
+      }
+      
+      // 選択モードでのマウス移動処理
+      handleSelectModeMouseMove(e) {
         if (this.isDragging && this.selectedObject && !this.selectedObject.isFixed) {
           const newX = e.clientX - this.dragOffsetX;
           const newY = e.clientY - this.dragOffsetY;
@@ -1219,6 +2031,14 @@
           this.selectedObject.x = newX;
           this.selectedObject.y = newY;
           
+          // グループに属する場合はグループの範囲も更新
+          if (this.selectedObject.groupId) {
+            const group = this.groups.find(g => g.id === this.selectedObject.groupId);
+            if (group) {
+              this.recalculateGroupBounds(group);
+            }
+          }
+          
           // 移動中のオブジェクトに関連する距離測定を更新
           if (this.showDistancesToggle.checked) {
             this.updateMeasurementsForObject(this.selectedObject.id);
@@ -1226,15 +2046,106 @@
         }
       }
       
+      // 複数選択モードでのマウス移動処理
+      handleMultiSelectModeMouseMove(e) {
+        const rect = this.canvas.getBoundingClientRect();
+        this.currentMultiSelectPos = {
+          x: e.clientX - rect.left,
+          y: e.clientY - rect.top
+        };
+        
+        // 選択ボックスのサイズと位置を更新
+        const left = Math.min(this.startMultiSelectPos.x, this.currentMultiSelectPos.x);
+        const top = Math.min(this.startMultiSelectPos.y, this.currentMultiSelectPos.y);
+        const width = Math.abs(this.currentMultiSelectPos.x - this.startMultiSelectPos.x);
+        const height = Math.abs(this.currentMultiSelectPos.y - this.startMultiSelectPos.y);
+        
+        this.selectionBox.style.left = `${left}px`;
+        this.selectionBox.style.top = `${top}px`;
+        this.selectionBox.style.width = `${width}px`;
+        this.selectionBox.style.height = `${height}px`;
+      }
+      
       // ドキュメント全体のマウスアップイベント
       handleDocumentMouseUp() {
-        if (this.isDragging) {
-          this.isDragging = false;
-          // ドラッグ終了時に全体の測定を更新
-          if (this.showDistancesToggle.checked) {
-            this.updateAllMeasurements();
+        if (this.currentMode === 'select') {
+          if (this.isDragging) {
+            this.isDragging = false;
+            // ドラッグ終了時に全体の測定を更新
+            if (this.showDistancesToggle.checked) {
+              this.updateAllMeasurements();
+            }
+          }
+        } else if (this.currentMode === 'multiSelect') {
+          if (this.isDragging) {
+            this.isDragging = false;
+            this.selectionBox.style.display = 'none';
+            
+            // 選択ボックス内のオブジェクトを選択
+            this.selectObjectsInBox(
+              parseFloat(this.selectionBox.style.left),
+              parseFloat(this.selectionBox.style.top),
+              parseFloat(this.selectionBox.style.width),
+              parseFloat(this.selectionBox.style.height)
+            );
           }
         }
+      }
+      
+      // 選択ボックス内のオブジェクトを選択
+      selectObjectsInBox(left, top, width, height) {
+        // 前回の選択をクリア
+        this.clearMultiSelection();
+        
+        // 選択ボックスの範囲
+        const selectionRect = {
+          left: left,
+          top: top,
+          right: left + width,
+          bottom: top + height
+        };
+        
+        // 範囲内のオブジェクトを選択
+        this.objects.forEach(object => {
+          const objectRect = {
+            left: object.x,
+            top: object.y,
+            right: object.x + (object.width * this.pixelsPerCm),
+            bottom: object.y + (object.height * this.pixelsPerCm)
+          };
+          
+          // 矩形が重なっている場合
+          if (
+            objectRect.left < selectionRect.right &&
+            objectRect.right > selectionRect.left &&
+            objectRect.top < selectionRect.bottom &&
+            objectRect.bottom > selectionRect.top
+          ) {
+            this.selectedObjects.push(object);
+            document.getElementById(`object-${object.id}`).classList.add('selected');
+          }
+        });
+        
+        // グループ化ボタンの状態を更新
+        this.updateCreateGroupButtonState();
+      }
+      
+      // 複数選択をクリア
+      clearMultiSelection() {
+        this.selectedObjects.forEach(object => {
+          const element = document.getElementById(`object-${object.id}`);
+          if (element) {
+            element.classList.remove('selected');
+          }
+        });
+        
+        this.selectedObjects = [];
+        this.updateCreateGroupButtonState();
+      }
+      
+      // グループ化ボタンの状態を更新
+      updateCreateGroupButtonState() {
+        this.createGroupBtn.disabled = this.selectedObjects.length < 2;
       }
       
       // すべてのオブジェクト間の距離測定を更新
@@ -1413,6 +2324,7 @@
           name,
           date: new Date().toLocaleString(),
           objects: [...this.objects],
+          groups: [...this.groups],
           scale: this.currentScale,
           showDistances: this.showDistancesToggle.checked
         };
@@ -1449,16 +2361,6 @@
             layoutItem.className = 'object-item';
             
             const info = document.createElement('div');
-            info.className = 'object-info';
-            
-            const name = document.createElement('div');
-            name.className = 'object-name';
-            name.textContent = layout.name;
-            
-            const meta = document.createElement('div');
-            meta.className = 'object-meta';
-            meta.textContent = `保存日時: ${layout.date} · オブジェクト数: ${layout.objects.length}`;
-            
             info.appendChild(name);
             info.appendChild(meta);
             
@@ -1496,12 +2398,20 @@
         // 既存のオブジェクトをクリア
         this.clearLayoutWithoutConfirmation();
         
+        // グループを先に復元
+        if (layout.groups) {
+          this.groups = [...layout.groups];
+          this.groups.forEach(group => this.renderGroup(group));
+        }
+        
         // オブジェクトを復元
         this.objects = [...layout.objects];
         this.objects.forEach(object => this.renderObject(object));
         
         // 選択状態をリセット
         this.selectedObject = null;
+        this.selectedGroup = null;
+        this.clearMultiSelection();
         
         // 距離表示設定の復元
         if (layout.showDistances !== undefined) {
@@ -1516,7 +2426,8 @@
         }
         
         this.updateObjectList();
-        this.updateObjectCount();
+        this.updateGroupList();
+        this.updateCounts();
         this.updateAllMeasurements();
         this.hideLoadModal();
         this.showToast(`レイアウト「${layout.name}」を読み込みました`, 'success');
@@ -1541,6 +2452,14 @@
       
       // 確認なしでレイアウトクリア（内部用）
       clearLayoutWithoutConfirmation() {
+        // グループを削除
+        this.groups.forEach(group => {
+          const groupElement = document.getElementById(`group-${group.id}`);
+          if (groupElement) {
+            groupElement.remove();
+          }
+        });
+        
         // キャンバス上のオブジェクトを削除
         this.objects.forEach(object => {
           const objectElement = document.getElementById(`object-${object.id}`);
@@ -1551,10 +2470,399 @@
         
         // データのクリア
         this.objects = [];
+        this.groups = [];
         this.selectedObject = null;
+        this.selectedGroup = null;
+        this.selectedObjects = [];
+        this.createGroupBtn.disabled = true;
+        this.ungroupBtn.disabled = true;
+        
         this.clearAllMeasurements();
         this.updateObjectList();
-        this.updateObjectCount();
+        this.updateGroupList();
+        this.updateCounts();
+      }
+      
+      // エクスポートモーダル表示
+      showExportModal() {
+        // ファイル名を設定
+        this.exportFileName.value = `レイアウト_${new Date().toLocaleDateString().replace(/\//g, '-')}`;
+        
+        // エクスポートタイプをリセット
+        this.exportType = null;
+        document.querySelectorAll('.export-option').forEach(opt => opt.classList.remove('selected'));
+        
+        // プレビューをクリア
+        this.previewContainer.innerHTML = '';
+        this.previewContainer.style.display = 'none';
+        
+        document.getElementById('downloadExportBtn').style.display = 'none';
+        
+        this.exportModal.style.display = 'flex';
+      }
+      
+      // エクスポートモーダル非表示
+      hideExportModal() {
+        this.exportModal.style.display = 'none';
+      }
+      
+      // エクスポートプレビュー生成
+      generateExportPreview() {
+        if (!this.exportType) return;
+        
+        this.previewContainer.innerHTML = '<div>プレビューを生成中...</div>';
+        this.previewContainer.style.display = 'block';
+        
+        const fileName = this.exportFileName.value.trim() || `レイアウト_${new Date().toLocaleDateString().replace(/\//g, '-')}`;
+        
+        switch (this.exportType) {
+          case 'image':
+            this.generateImagePreview();
+            break;
+          case 'pdf':
+            this.previewContainer.innerHTML = '<div>PDFプレビューは利用できません。ダウンロードボタンをクリックしてPDFを生成してください。</div>';
+            document.getElementById('downloadExportBtn').style.display = 'block';
+            break;
+          case 'json':
+            this.generateJSONPreview();
+            break;
+          case 'csv':
+            this.generateCSVPreview();
+            break;
+        }
+      }
+      
+      // 画像プレビュー生成
+      generateImagePreview() {
+        const canvas = document.getElementById('layoutCanvas');
+        
+        html2canvas(canvas, {
+          backgroundColor: 'white',
+          scale: window.devicePixelRatio,
+          logging: false
+        }).then(canvas => {
+          // プレビュー表示
+          this.previewContainer.innerHTML = '';
+          canvas.style.maxWidth = '100%';
+          canvas.style.height = 'auto';
+          this.previewContainer.appendChild(canvas);
+          
+          // ダウンロードボタンを表示
+          document.getElementById('downloadExportBtn').style.display = 'block';
+        }).catch(error => {
+          console.error('Error generating image:', error);
+          this.previewContainer.innerHTML = '<div>プレビューの生成に失敗しました</div>';
+        });
+      }
+      
+      // JSONプレビュー生成
+      generateJSONPreview() {
+        const layoutData = {
+          objects: this.objects,
+          groups: this.groups,
+          date: new Date().toISOString()
+        };
+        
+        const jsonString = JSON.stringify(layoutData, null, 2);
+        
+        // プレビュー表示
+        const pre = document.createElement('pre');
+        pre.style.maxHeight = '300px';
+        pre.style.overflow = 'auto';
+        pre.style.margin = '0';
+        pre.style.padding = '10px';
+        pre.style.backgroundColor = '#f5f5f5';
+        pre.style.borderRadius = '4px';
+        pre.style.fontSize = '12px';
+        pre.textContent = jsonString;
+        
+        this.previewContainer.innerHTML = '';
+        this.previewContainer.appendChild(pre);
+        
+        // ダウンロードボタンを表示
+        document.getElementById('downloadExportBtn').style.display = 'block';
+      }
+      
+      // CSVプレビュー生成
+      generateCSVPreview() {
+        // ヘッダー
+        let csvContent = 'ID,名前,幅(cm),奥行き(cm),X座標,Y座標,色,固定,グループID\n';
+        
+        // オブジェクトデータ
+        this.objects.forEach(obj => {
+          csvContent += `${obj.id},"${obj.name}",${obj.width},${obj.height},${obj.x},${obj.y},"${obj.color}",${obj.isFixed},${obj.groupId || ''}\n`;
+        });
+        
+        // グループデータがあれば別テーブルとして追加
+        if (this.groups.length > 0) {
+          csvContent += '\nグループID,グループ名,色,X座標,Y座標,幅(cm),奥行き(cm)\n';
+          this.groups.forEach(group => {
+            csvContent += `${group.id},"${group.name}","${group.color}",${group.x},${group.y},${group.width},${group.height}\n`;
+          });
+        }
+        
+        // プレビュー表示
+        const pre = document.createElement('pre');
+        pre.style.maxHeight = '300px';
+        pre.style.overflow = 'auto';
+        pre.style.margin = '0';
+        pre.style.padding = '10px';
+        pre.style.backgroundColor = '#f5f5f5';
+        pre.style.borderRadius = '4px';
+        pre.style.fontSize = '12px';
+        pre.textContent = csvContent;
+        
+        this.previewContainer.innerHTML = '';
+        this.previewContainer.appendChild(pre);
+        
+        // ダウンロードボタンを表示
+        document.getElementById('downloadExportBtn').style.display = 'block';
+      }
+      
+      // エクスポートダウンロード
+      downloadExport() {
+        if (!this.exportType) {
+          this.showToast('エクスポート形式を選択してください', 'error');
+          return;
+        }
+        
+        const fileName = this.exportFileName.value.trim() || `レイアウト_${new Date().toLocaleDateString().replace(/\//g, '-')}`;
+        
+        switch (this.exportType) {
+          case 'image':
+            this.downloadImage(fileName);
+            break;
+          case 'pdf':
+            this.downloadPDF(fileName);
+            break;
+          case 'json':
+            this.downloadJSON(fileName);
+            break;
+          case 'csv':
+            this.downloadCSV(fileName);
+            break;
+        }
+      }
+      
+      // 画像ダウンロード
+      downloadImage(fileName) {
+        const canvas = document.getElementById('layoutCanvas');
+        
+        html2canvas(canvas, {
+          backgroundColor: 'white',
+          scale: window.devicePixelRatio,
+          logging: false
+        }).then(canvas => {
+          // キャンバスをPNG形式に変換
+          const dataURL = canvas.toDataURL('image/png');
+          
+          // ダウンロードリンクを作成
+          const downloadLink = document.createElement('a');
+          downloadLink.href = dataURL;
+          downloadLink.download = `${fileName}.png`;
+          
+          // リンクをクリックしてダウンロード開始
+          document.body.appendChild(downloadLink);
+          downloadLink.click();
+          document.body.removeChild(downloadLink);
+          
+          this.hideExportModal();
+          this.showToast(`画像「${fileName}.png」をダウンロードしました`, 'success');
+        }).catch(error => {
+          console.error('Error generating image:', error);
+          this.showToast('画像の生成に失敗しました', 'error');
+        });
+      }
+      
+      // PDFダウンロード
+      downloadPDF(fileName) {
+        const canvas = document.getElementById('layoutCanvas');
+        
+        html2canvas(canvas, {
+          backgroundColor: 'white',
+          scale: window.devicePixelRatio,
+          logging: false
+        }).then(canvas => {
+          // キャンバスの幅と高さ
+          const canvasWidth = canvas.width;
+          const canvasHeight = canvas.height;
+          
+          // PDFのサイズを決定（A4サイズを基準）
+          const pdfWidth = 210;  // A4の幅（mm）
+          const pdfHeight = (canvasHeight * pdfWidth) / canvasWidth;
+          
+          // PDF生成
+          const { jsPDF } = window.jspdf;
+          const pdf = new jsPDF({
+            orientation: pdfWidth > pdfHeight ? 'landscape' : 'portrait',
+            unit: 'mm',
+            format: [pdfWidth, pdfHeight]
+          });
+          
+          // キャンバスイメージをPDFに追加
+          const imgData = canvas.toDataURL('image/png');
+          pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
+          
+          // PDFをダウンロード
+          pdf.save(`${fileName}.pdf`);
+          
+          this.hideExportModal();
+          this.showToast(`PDF「${fileName}.pdf」をダウンロードしました`, 'success');
+        }).catch(error => {
+          console.error('Error generating PDF:', error);
+          this.showToast('PDFの生成に失敗しました', 'error');
+        });
+      }
+      
+      // JSONダウンロード
+      downloadJSON(fileName) {
+        const layoutData = {
+          objects: this.objects,
+          groups: this.groups,
+          date: new Date().toISOString()
+        };
+        
+        const jsonString = JSON.stringify(layoutData, null, 2);
+        const blob = new Blob([jsonString], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        
+        const downloadLink = document.createElement('a');
+        downloadLink.href = url;
+        downloadLink.download = `${fileName}.json`;
+        
+        document.body.appendChild(downloadLink);
+        downloadLink.click();
+        document.body.removeChild(downloadLink);
+        
+        URL.revokeObjectURL(url);
+        
+        this.hideExportModal();
+        this.showToast(`JSON「${fileName}.json」をダウンロードしました`, 'success');
+      }
+      
+      // CSVダウンロード
+      downloadCSV(fileName) {
+        // ヘッダー
+        let csvContent = 'ID,名前,幅(cm),奥行き(cm),X座標,Y座標,色,固定,グループID\n';
+        
+        // オブジェクトデータ
+        this.objects.forEach(obj => {
+          csvContent += `${obj.id},"${obj.name}",${obj.width},${obj.height},${obj.x},${obj.y},"${obj.color}",${obj.isFixed},${obj.groupId || ''}\n`;
+        });
+        
+        // グループデータがあれば別テーブルとして追加
+        if (this.groups.length > 0) {
+          csvContent += '\nグループID,グループ名,色,X座標,Y座標,幅(cm),奥行き(cm)\n';
+          this.groups.forEach(group => {
+            csvContent += `${group.id},"${group.name}","${group.color}",${group.x},${group.y},${group.width},${group.height}\n`;
+          });
+        }
+        
+        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+        const url = URL.createObjectURL(blob);
+        
+        const downloadLink = document.createElement('a');
+        downloadLink.href = url;
+        downloadLink.download = `${fileName}.csv`;
+        
+        document.body.appendChild(downloadLink);
+        downloadLink.click();
+        document.body.removeChild(downloadLink);
+        
+        URL.revokeObjectURL(url);
+        
+        this.hideExportModal();
+        this.showToast(`CSV「${fileName}.csv」をダウンロードしました`, 'success');
+      }
+      
+      // 共有モーダル表示
+      showShareModal() {
+        // 共有URLを生成
+        this.generateShareURL();
+        
+        // QRコードを非表示にリセット
+        this.qrCodeContainer.style.display = 'none';
+        
+        this.shareModal.style.display = 'flex';
+      }
+      
+      // 共有モーダル非表示
+      hideShareModal() {
+        this.shareModal.style.display = 'none';
+      }
+      
+      // 共有URL生成
+      generateShareURL() {
+        // レイアウトデータをJSON化
+        const layoutData = {
+          objects: this.objects,
+          groups: this.groups,
+          date: new Date().toISOString()
+        };
+        
+        // データをJSON文字列に変換し、圧縮
+        const jsonString = JSON.stringify(layoutData);
+        const compressedData = LZString.compressToEncodedURIComponent(jsonString);
+        
+        // URLを生成（現在のページのベースURLに圧縮データとモードを追加）
+        const baseUrl = window.location.href.split('?')[0];
+        const shareUrl = `${baseUrl}?data=${compressedData}&mode=${this.shareMode}`;
+        
+        // 入力フィールドに設定
+        this.shareURLInput.value = shareUrl;
+      }
+      
+      // 共有URLをクリップボードにコピー
+      copyShareURL() {
+        this.shareURLInput.select();
+        document.execCommand('copy');
+        
+        this.showToast('共有URLをクリップボードにコピーしました', 'success');
+      }
+      
+      // QRコード生成
+      generateQRCode() {
+        const shareUrl = this.shareURLInput.value;
+        
+        // QRコードを生成
+        QRCode.toDataURL(shareUrl, { errorCorrectionLevel: 'H' }, (err, url) => {
+          if (err) {
+            console.error('QRコードの生成に失敗しました', err);
+            this.showToast('QRコードの生成に失敗しました', 'error');
+            return;
+          }
+          
+          // 画像要素に設定して表示
+          this.qrCodeImage.src = url;
+          this.qrCodeContainer.style.display = 'block';
+        });
+      }
+      
+      // SNSなどで共有
+      shareToSNS(platform) {
+        const shareUrl = encodeURIComponent(this.shareURLInput.value);
+        const title = encodeURIComponent('置き場レイアウト作成ツール - 共有レイアウト');
+        
+        let url;
+        
+        switch (platform) {
+          case 'twitter':
+            url = `https://twitter.com/intent/tweet?url=${shareUrl}&text=${title}`;
+            break;
+          case 'facebook':
+            url = `https://www.facebook.com/sharer/sharer.php?u=${shareUrl}`;
+            break;
+          case 'line':
+            url = `https://social-plugins.line.me/lineit/share?url=${shareUrl}`;
+            break;
+          case 'mail':
+            url = `mailto:?subject=${title}&body=${shareUrl}`;
+            break;
+          default:
+            return;
+        }
+        
+        window.open(url, '_blank');
       }
       
       // トースト通知表示
@@ -1577,4 +2885,5 @@
     });
   </script>
 </body>
-</html>
+</html>className = 'object-info';
+            
